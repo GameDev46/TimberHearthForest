@@ -75,17 +75,14 @@ namespace TimberHearthForest
             if (newScene != OWScene.SolarSystem) return;
             //ModHelper.Console.WriteLine("Loaded into solar system!", MessageType.Success);
 
-            // Loaded into Solar System
+            // Loaded into Solar System!
 
             // Load tree data and spawn trees
             string treeSpawnDataPath = ModHelper.Manifest.ModFolderPath + "Assets/treeSpawnData.json";
             LoadAndSpawnProps(treeSpawnDataPath);
         }
 
-        /// <summary>
         /// Called by OWML; once at the start and upon each config setting change.
-        /// </summary>
-        /// <param name="config">The new settings passed from OWML</param>
         public override void Configure(IModConfig config)
         {
             string treeDensityPreset = config.GetSettingsValue<string>("treeDensity");
