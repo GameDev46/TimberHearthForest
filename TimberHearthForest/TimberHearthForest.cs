@@ -167,7 +167,7 @@ namespace TimberHearthForest
             if (grassHandle) if (!string.IsNullOrEmpty(grassHandle.assetBundle)) StreamingManager.LoadStreamingAssets(grassHandle.assetBundle);
 
             // Locate the tall grass template gameobject
-            const string tallGrassTemplatePath = "TimberHearth_Body/Sector_TH/Sector_NomaiCrater/DetailPatches_NomaiCrater/NomaiCrater Foliage/Foliage_TH_NomaiCrater_GrassLow (1)/";
+            /*const string tallGrassTemplatePath = "TimberHearth_Body/Sector_TH/Sector_NomaiCrater/DetailPatches_NomaiCrater/NomaiCrater Foliage/Foliage_TH_NomaiCrater_GrassLow (1)/";
             GameObject tallGrassTemplate = GetGameObjectAtPath(tallGrassTemplatePath);
 
             if (tallGrassTemplate == null)
@@ -177,7 +177,7 @@ namespace TimberHearthForest
             }
 
             var tallGrassHandle = tallGrassTemplate.GetComponent<StreamingMeshHandle>();
-            if (tallGrassHandle) if (!string.IsNullOrEmpty(tallGrassHandle.assetBundle)) StreamingManager.LoadStreamingAssets(tallGrassHandle.assetBundle);
+            if (tallGrassHandle) if (!string.IsNullOrEmpty(tallGrassHandle.assetBundle)) StreamingManager.LoadStreamingAssets(tallGrassHandle.assetBundle);*/
 
             foreach (var detail in treeData) {
                 // Spawn the tree
@@ -240,7 +240,7 @@ namespace TimberHearthForest
                 /* -----------*/
 
                 // Spawn the grass tuft
-                GameObject tallGrassClone = Instantiate(tallGrassTemplate);
+                /*GameObject tallGrassClone = Instantiate(tallGrassTemplate);
 
                 tallGrassClone.transform.position = timberHearthSector.transform.position;
                 tallGrassClone.transform.rotation = Quaternion.identity;
@@ -255,7 +255,7 @@ namespace TimberHearthForest
                 tallGrassClone.transform.localRotation = Quaternion.Euler(detail.rotation.x, detail.rotation.y, detail.rotation.z);
                 tallGrassClone.transform.localScale = new Vector3(randomScale, randomScale, randomScale);
 
-                spawnedGrass.Add(tallGrassClone);
+                spawnedGrass.Add(tallGrassClone);*/
             }
 
             ModHelper.Console.WriteLine("All trees and grass tufts have been spawned.", MessageType.Success);
