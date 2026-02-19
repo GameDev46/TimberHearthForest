@@ -1,2 +1,15 @@
-# TimberHearthForest
-Adds more trees and grass to cover the surface of Timber Hearth. The density can be changed in the settings menu.
+# Outer Wilds - Timber Hearth Forest
+
+<img width="1920" height="1080" alt="Screenshot (271)" src="https://github.com/user-attachments/assets/e01bb7c7-22bc-4798-b091-c1c9442a259e" />
+
+<hr>
+
+## Info
+
+This mod covers the barren grass surface of Timber Hearth with trees and grass.
+
+The trees do not have hitboxes to make landing and flying easier (you can imagine how difficult it would be to land on the planet if they did!).
+
+## Usage
+
+The denisty of grass an trees can be set in the mod settings menu between either ultra, high, medium, low or hidden depending on your preference. Grass and tree density can also be set seperately.
