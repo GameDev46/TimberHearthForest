@@ -344,17 +344,13 @@ namespace TimberHearthForest
 
         private void StripQuantumComponents(GameObject obj)
         {
-            foreach (var q in obj.GetComponentsInChildren<QuantumObject>(true))
-                Destroy(q);
+            foreach (var q in obj.GetComponentsInChildren<QuantumObject>(true)) Destroy(q);
 
-            foreach (var q in obj.GetComponentsInChildren<SocketedQuantumObject>(true))
-                Destroy(q);
+            foreach (var q in obj.GetComponentsInChildren<SocketedQuantumObject>(true)) Destroy(q);
 
-            foreach (var v in obj.GetComponentsInChildren<VisibilityObject>(true))
-                Destroy(v);
+            foreach (var v in obj.GetComponentsInChildren<VisibilityObject>(true)) Destroy(v);
 
-            foreach (var s in obj.GetComponentsInChildren<ShapeVisibilityTracker>(true))
-                Destroy(s);
+            foreach (var s in obj.GetComponentsInChildren<ShapeVisibilityTracker>(true)) Destroy(s);
         }
 
         public GameObject GetGameObjectAtPath(string path)
