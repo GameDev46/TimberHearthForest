@@ -1,0 +1,34 @@
+{
+  "$schema": "https://raw.githubusercontent.com/ow-mods/owml/master/schemas/config_schema.json",
+  "enabled": true,
+  "settings": {
+
+    "treeDensity": {
+      "title": "Tree Density",
+      "type": "selector",
+      "value": "Ultra",
+      "options": [
+        "Ultra",
+        "High",
+        "Medium",
+        "Low",
+        "Hidden"
+      ],
+      "tooltip": "Changes the amount of extra trees on Timber Hearth"
+    },
+    "grassDensity": {
+      "title": "Grass Density",
+      "type": "selector",
+      "value": "Ultra",
+      "options": [
+        "Ultra",
+        "High",
+        "Medium",
+        "Low",
+        "Hidden"
+      ],
+      "tooltip": "Changes the amount of extra grass tufts on Timber Hearth"
+    }
+
+  }
+}
