@@ -1,6 +1,6 @@
 # Outer Wilds - Timber Hearth Forest
 
-<img width="1920" height="1080" alt="Screenshot (271)" src="https://github.com/user-attachments/assets/e01bb7c7-22bc-4798-b091-c1c9442a259e" />
+<img width="1920" alt="Screenshot (271)" src="https://github.com/user-attachments/assets/e01bb7c7-22bc-4798-b091-c1c9442a259e" />
 
 <hr>
 
