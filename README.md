@@ -13,3 +13,7 @@ The trees do not have hitboxes to make landing and flying easier (you can imagin
 ## Usage
 
 The denisty of grass an trees can be set in the mod settings menu between either ultra, high, medium, low or hidden depending on your preference. Grass and tree density can also be set seperately.
+
+## Known Issues
+
+Grass has a small chance of not spawning, don't worry, next game loop it will be there again - working on finding the cause of this!
