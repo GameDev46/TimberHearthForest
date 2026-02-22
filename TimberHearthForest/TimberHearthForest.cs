@@ -8,6 +8,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -86,10 +87,10 @@ namespace TimberHearthForest
         public override void Configure(IModConfig config)
         {
             string treeDensityPreset = config.GetSettingsValue<string>("treeDensity");
-            UpdateDensity(treeDensityPreset, "tree");
+            UpdatePropDensity(treeDensityPreset, "tree");
 
             string grassDensityPreset = config.GetSettingsValue<string>("grassDensity");
-            UpdateDensity(grassDensityPreset, "grass");
+            UpdatePropDensity(grassDensityPreset, "grass");
         }
 
         private void LoadAndSpawnProps(string jsonFilePath)
@@ -119,7 +120,8 @@ namespace TimberHearthForest
             spawnedTrees = new List<GameObject>();
             spawnedGrass = new List<GameObject>();
 
-            yield return new WaitForSeconds(3f); // Wait a moment to ensure the scene is fully loaded
+            // Wait for scene to load
+            yield return new WaitForSeconds(3f);
 
             // Locate TimberHearth_Body
             timberHearthBody = GameObject.Find("TimberHearth_Body");
@@ -258,13 +260,13 @@ namespace TimberHearthForest
             ModHelper.Console.WriteLine("All trees and grass tufts have been spawned.", MessageType.Success);
 
             string treeDensityPreset = ModHelper.Config.GetSettingsValue<string>("treeDensity");
-            UpdateDensity(treeDensityPreset, "tree");
+            UpdatePropDensity(treeDensityPreset, "tree");
 
             string grassDensityPreset = ModHelper.Config.GetSettingsValue<string>("grassDensity");
-            UpdateDensity(treeDensityPreset, "grass");
+            UpdatePropDensity(treeDensityPreset, "grass");
         }
 
-        private void UpdateDensity(string densityDescriptor, string spawnType)
+        private void UpdatePropDensity(string densityDescriptor, string spawnType)
         {
             if (spawnedTrees == null && spawnType == "tree")
             {
@@ -409,7 +411,7 @@ namespace TimberHearthForest
                 if (trimmedLine.StartsWith("\"x\""))
                 {
                     // Extract rotation.x
-                    float x = float.Parse(ExtractValue(trimmedLine));
+                    float x = float.Parse(ExtractValue(trimmedLine), CultureInfo.InvariantCulture);
 
                     if (collectionMode == "rotation")
                     {
@@ -425,7 +427,7 @@ namespace TimberHearthForest
                 else if (trimmedLine.StartsWith("\"y\""))
                 {
                     // Extract rotation.y
-                    float y = float.Parse(ExtractValue(trimmedLine));
+                    float y = float.Parse(ExtractValue(trimmedLine), CultureInfo.InvariantCulture);
 
                     if (collectionMode == "rotation")
                     {
@@ -439,7 +441,7 @@ namespace TimberHearthForest
                 else if (trimmedLine.StartsWith("\"z\""))
                 {
                     // Extract rotation.z
-                    float z = float.Parse(ExtractValue(trimmedLine));
+                    float z = float.Parse(ExtractValue(trimmedLine), CultureInfo.InvariantCulture);
 
                     if (collectionMode == "rotation")
                     {
