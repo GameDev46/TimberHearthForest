@@ -28,19 +28,6 @@
         "Hidden"
       ],
       "tooltip": "Changes the amount of extra grass tufts on Timber Hearth"
-    },
-    "rainMode": {
-      "title": "Rain Mode",
-      "type": "selector",
-      "value": "Average",
-      "options": [
-        "Permanent",
-        "Frequent",
-        "Average",
-        "Rare",
-        "Never"
-      ],
-      "tooltip": "Controls how frequently Timber Hearth will experience rain"
     }
 
   }

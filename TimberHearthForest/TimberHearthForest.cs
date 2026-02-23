@@ -20,35 +20,18 @@ namespace TimberHearthForest
     {
         public static TimberHearthForest Instance;
 
-        private GameObject timberHearthBody;
-        private Sector timberHearthSector;
-
         private List<GameObject> spawnedTrees = new List<GameObject>();
         private List<GameObject> spawnedGrass = new List<GameObject>();
 
-        [System.Serializable]
+        private Sector timberHearthSector;
+        private Sector quantumMoonSector;
+
+        private List<string> assetBundles = new List<string>();
+
         public class PropDetails
         {
-            public string path;
-            public ModelRotation rotation;
-            public bool alignRadial;
-            public ModelPosition position;
-        }
-
-        [System.Serializable]
-        public class ModelRotation
-        {
-            public float x;
-            public float y;
-            public float z;
-        }
-
-        [System.Serializable]
-        public class ModelPosition
-        {
-            public float x;
-            public float y;
-            public float z;
+            public Vector3 rotation;
+            public Vector3 position;
         }
 
         public void Awake()
@@ -124,7 +107,7 @@ namespace TimberHearthForest
             yield return new WaitForSeconds(3f);
 
             // Locate TimberHearth_Body
-            timberHearthBody = GameObject.Find("TimberHearth_Body");
+            GameObject timberHearthBody = GameObject.Find("TimberHearth_Body");
 
             if (timberHearthBody == null)
             {
@@ -133,9 +116,6 @@ namespace TimberHearthForest
             }
 
             ModHelper.Console.WriteLine("Located TimberHearth_Body object successfully", MessageType.Success);
-
-            // Get the sector component from TimberHearth_Body
-            timberHearthSector = timberHearthBody.GetComponentInChildren<Sector>();
 
             // Locate the tree template gameobject
             const string treeTemplatePath = "QuantumMoon_Body/Sector_QuantumMoon/State_TH/Interactables_THState/Crater_Surface/Surface_AlpineTrees_Single/QAlpine_Tree_.25 (1)/";
@@ -147,9 +127,10 @@ namespace TimberHearthForest
                 yield break;
             }
 
+            // Load the tree template's asset bundle to prevent the clones from being invisible
             foreach (var handle in treeTemplate.GetComponentsInChildren<StreamingMeshHandle>(true))
             {
-                if (!string.IsNullOrEmpty(handle.assetBundle)) StreamingManager.LoadStreamingAssets(handle.assetBundle);
+                if (!string.IsNullOrEmpty(handle.assetBundle)) assetBundles.Add(handle.assetBundle);
             }
 
             // Locate the grass template gameobject
@@ -162,31 +143,38 @@ namespace TimberHearthForest
                 yield break;
             }
 
+            // Load the grass template's asset bundle to prevent the clones from being invisible
             var grassHandle = grassTemplate.GetComponent<StreamingMeshHandle>();
-            if (grassHandle) if (!string.IsNullOrEmpty(grassHandle.assetBundle)) StreamingManager.LoadStreamingAssets(grassHandle.assetBundle);
+            if (grassHandle) if (!string.IsNullOrEmpty(grassHandle.assetBundle)) assetBundles.Add(grassHandle.assetBundle);
 
-            // Locate the tall grass template gameobject
-            /*const string tallGrassTemplatePath = "TimberHearth_Body/Sector_TH/Sector_NomaiCrater/DetailPatches_NomaiCrater/NomaiCrater Foliage/Foliage_TH_NomaiCrater_GrassLow (1)/";
-            GameObject tallGrassTemplate = GetGameObjectAtPath(tallGrassTemplatePath);
+            // Locate the Timber Hearth and Quantum Moon Sector
+            timberHearthSector = Locator.GetAstroObject(AstroObject.Name.TimberHearth).GetComponentInChildren<Sector>();
+            quantumMoonSector = Locator.GetAstroObject(AstroObject.Name.QuantumMoon).GetComponentInChildren<Sector>();
 
-            if (tallGrassTemplate == null)
-            {
-                ModHelper.Console.WriteLine("Couldn't locate the tall grass template gameobject at: " + grassTemplatePath, MessageType.Error);
-                yield break;
-            }
+            timberHearthSector.OnOccupantEnterSector += OnEnterTimberHearth;
+            quantumMoonSector.OnOccupantExitSector += OnLeaveQuantumMoon;
 
-            var tallGrassHandle = tallGrassTemplate.GetComponent<StreamingMeshHandle>();
-            if (tallGrassHandle) if (!string.IsNullOrEmpty(tallGrassHandle.assetBundle)) StreamingManager.LoadStreamingAssets(tallGrassHandle.assetBundle);*/
+            // Load all the asset bundles to prevent the clones from being invisible
+            foreach (string bundle in assetBundles) StreamingManager.LoadStreamingAssets(bundle);
+
+            // Used to group tree clones together for a cleaner hierachy
+            GameObject treeParent = new GameObject("TH_Trees_Surface");
+            treeParent.transform.SetParent(timberHearthSector.transform, false);
+            treeParent.transform.localPosition = Vector3.zero;
+            treeParent.transform.localRotation = Quaternion.identity;
+
+            // Used to group grass clones together for a cleaner hierachy
+            GameObject grassParent = new GameObject("TH_Grass_Surface");
+            grassParent.transform.SetParent(timberHearthSector.transform, false);
+            grassParent.transform.localPosition = Vector3.zero;
+            grassParent.transform.localRotation = Quaternion.identity;
 
             foreach (var detail in treeData) {
                 // Spawn the tree
                 GameObject treeClone = Instantiate(treeTemplate);
 
-                treeClone.transform.position = timberHearthSector.transform.position;
-                treeClone.transform.rotation = Quaternion.identity;
-
                 // Parent the tree
-                treeClone.transform.SetParent(timberHearthSector.transform, false);
+                treeClone.transform.SetParent(treeParent.transform, false);
 
                 // Remove quantum components to prevent weird interactions with the tree clones
                 StripQuantumComponents(treeClone);
@@ -219,11 +207,8 @@ namespace TimberHearthForest
                 // Spawn the grass tuft
                 GameObject grassClone = Instantiate(grassTemplate);
 
-                grassClone.transform.position = timberHearthSector.transform.position;
-                grassClone.transform.rotation = Quaternion.identity;
-
                 // Parent the tree
-                grassClone.transform.SetParent(timberHearthSector.transform, false);
+                grassClone.transform.SetParent(grassParent.transform, false);
 
                 randomScale = UnityEngine.Random.Range(0.8f, 1.2f);
 
@@ -233,37 +218,32 @@ namespace TimberHearthForest
                 grassClone.transform.localScale = new Vector3(randomScale, randomScale, randomScale);
 
                 spawnedGrass.Add(grassClone);
-
-                /* -----------*/
-                /* TALL GRASS */
-                /* -----------*/
-
-                // Spawn the grass tuft
-                /*GameObject tallGrassClone = Instantiate(tallGrassTemplate);
-
-                tallGrassClone.transform.position = timberHearthSector.transform.position;
-                tallGrassClone.transform.rotation = Quaternion.identity;
-
-                // Parent the tree
-                tallGrassClone.transform.SetParent(timberHearthSector.transform, false);
-
-                randomScale = UnityEngine.Random.Range(0.8f, 1.2f);
-
-                // Set position, rotation and scale
-                tallGrassClone.transform.position = timberHearthBody.transform.TransformPoint(new Vector3(detail.position.x, detail.position.y, detail.position.z));
-                tallGrassClone.transform.localRotation = Quaternion.Euler(detail.rotation.x, detail.rotation.y, detail.rotation.z);
-                tallGrassClone.transform.localScale = new Vector3(randomScale, randomScale, randomScale);
-
-                spawnedGrass.Add(tallGrassClone);*/
             }
 
             ModHelper.Console.WriteLine("All trees and grass tufts have been spawned.", MessageType.Success);
 
+            // Update the tree and grass density
             string treeDensityPreset = ModHelper.Config.GetSettingsValue<string>("treeDensity");
             UpdatePropDensity(treeDensityPreset, "tree");
 
             string grassDensityPreset = ModHelper.Config.GetSettingsValue<string>("grassDensity");
             UpdatePropDensity(treeDensityPreset, "grass");
+        }
+
+        private void OnEnterTimberHearth(SectorDetector detector)
+        {
+            // Should only load bundles if the player is entering Timber Hearth
+            if (!timberHearthSector.ContainsOccupant(DynamicOccupant.Player)) return;
+            // Load all the asset bundles
+            foreach (string bundle in assetBundles) StreamingManager.LoadStreamingAssets(bundle);
+        }
+
+        private void OnLeaveQuantumMoon(SectorDetector detector)
+        {
+            // Should only load bundles if the player is leaving the quantum moon
+            if (quantumMoonSector.ContainsOccupant(DynamicOccupant.Player)) return;
+            // Load all the asset bundles
+            foreach (string bundle in assetBundles) StreamingManager.LoadStreamingAssets(bundle);
         }
 
         private void UpdatePropDensity(string densityDescriptor, string spawnType)
@@ -347,11 +327,8 @@ namespace TimberHearthForest
         private void StripQuantumComponents(GameObject obj)
         {
             foreach (var q in obj.GetComponentsInChildren<QuantumObject>(true)) Destroy(q);
-
             foreach (var q in obj.GetComponentsInChildren<SocketedQuantumObject>(true)) Destroy(q);
-
             foreach (var v in obj.GetComponentsInChildren<VisibilityObject>(true)) Destroy(v);
-
             foreach (var s in obj.GetComponentsInChildren<ShapeVisibilityTracker>(true)) Destroy(s);
         }
 
@@ -383,119 +360,57 @@ namespace TimberHearthForest
 
         private List<PropDetails> ParseJson(string json)
         {
-            // Prepare data holders
-            List<PropDetails> PropDetailsList = new List<PropDetails>();
+            // Rest in peace 39097 line JSON file, you will be remembered
 
-            // Split JSON into lines
-            string[] lines = json.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+            // Prepare the list that will hold the prop details extracted from the JSON
+            List<PropDetails> propDetailList = new List<PropDetails>();
 
-            PropDetails currentDetail = null;
-            string collectionMode = "";
+            // Split JSON into seperate lines for easier processing
+            string[] lines = json.Split(new char[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries);
+
+            PropDetails currentProp = null;
 
             foreach (string line in lines)
             {
-                
+                // Remove any leading or trailing whitespace
                 string trimmedLine = line.Trim();
 
-                if (trimmedLine.StartsWith("\"path\""))
-                {
-                    // Extract the path value
-                    string path = ExtractValue(trimmedLine);
-                    currentDetail = new PropDetails();
-                    currentDetail.path = path;
-                }
+                // If the line doesn't contain both [ and ], it's not a line with position and rotation data, so skip
+                if (!trimmedLine.Contains("[") || !trimmedLine.Contains("]")) continue;
 
-                if (trimmedLine.Contains("rotation")) collectionMode = "rotation";
-                if (trimmedLine.Contains("position")) collectionMode = "position";
+                // Extract the position and rotation data
+                string[] treeData = trimmedLine.Split(new char[] { '[', ']', ',' }, StringSplitOptions.RemoveEmptyEntries);
 
-                if (trimmedLine.StartsWith("\"x\""))
-                {
-                    // Extract rotation.x
-                    float x = float.Parse(ExtractValue(trimmedLine), CultureInfo.InvariantCulture);
+                // This shouldn't be called, but protects against bad data formatting
+                // as treeData should consist of 3 position values and 3 rotation values
+                if (treeData.Length != 6) continue;
 
-                    if (collectionMode == "rotation")
-                    {
-                        currentDetail.rotation = new ModelRotation();
-                        currentDetail.rotation.x = x;
-                    }
-                    else if (collectionMode == "position")
-                    {
-                        currentDetail.position = new ModelPosition();
-                        currentDetail.position.x = x;
-                    }
-                }
-                else if (trimmedLine.StartsWith("\"y\""))
-                {
-                    // Extract rotation.y
-                    float y = float.Parse(ExtractValue(trimmedLine), CultureInfo.InvariantCulture);
+                currentProp = new PropDetails();
 
-                    if (collectionMode == "rotation")
-                    {
-                        currentDetail.rotation.y = y;
-                    }
-                    else if (collectionMode == "position")
-                    {
-                        currentDetail.position.y = y;
-                    }
-                }
-                else if (trimmedLine.StartsWith("\"z\""))
-                {
-                    // Extract rotation.z
-                    float z = float.Parse(ExtractValue(trimmedLine), CultureInfo.InvariantCulture);
+                // Extract the prop position data
+                float posX = float.Parse(treeData[0].Trim(), CultureInfo.InvariantCulture);
+                float posY = float.Parse(treeData[1].Trim(), CultureInfo.InvariantCulture);
+                float posZ = float.Parse(treeData[2].Trim(), CultureInfo.InvariantCulture);
 
-                    if (collectionMode == "rotation")
-                    {
-                        currentDetail.rotation.z = z;
-                    }
-                    else if (collectionMode == "position")
-                    {
-                        currentDetail.position.z = z;
-                    }
-                }
+                currentProp.position = new Vector3(posX, posY, posZ);
 
-                if (trimmedLine.StartsWith("\"alignRadial\""))
-                {
-                    // Extract alignRadial
-                    bool alignRadial = bool.Parse(ExtractValue(trimmedLine));
-                    currentDetail.alignRadial = alignRadial;
-                }
-                
-                if (trimmedLine.Contains("}"))
-                {
-                    // End of one detail
-                    if (currentDetail != null && collectionMode == null)
-                    {
-                        PropDetailsList.Add(currentDetail);
-                        currentDetail = null;
-                    }
+                // Extract the prop rotation data
+                float rotX = float.Parse(treeData[3].Trim(), CultureInfo.InvariantCulture);
+                float rotY = float.Parse(treeData[4].Trim(), CultureInfo.InvariantCulture);
+                float rotZ = float.Parse(treeData[5].Trim(), CultureInfo.InvariantCulture);
 
-                    collectionMode = null;
-                }
+                currentProp.rotation = new Vector3(rotX, rotY, rotZ);
+
+                // Add the new prop to the list
+                propDetailList.Add(currentProp);
+
+                // Clear the current prop
+                currentProp = null;
             }
 
-            // Final add if there's leftover detail
-            if (currentDetail != null)
-            {
-                PropDetailsList.Add(currentDetail);
-            }
+            ModHelper.Console.WriteLine($"Parsed {propDetailList.Count} tree details.", MessageType.Success);
 
-            ModHelper.Console.WriteLine($"Parsed {PropDetailsList.Count} tree details.", MessageType.Success);
-
-            return PropDetailsList;
-        }
-
-        private string ExtractValue(string line)
-        {
-            // Extract the value between quotes or after the colon
-            int colonIndex = line.IndexOf(':');
-            string value = line.Substring(colonIndex + 1).Trim();
-
-            if (value.StartsWith("\"") && value.EndsWith("\""))
-            {
-                value = value.Substring(1, value.Length - 2); // Remove quotes
-            }
-
-            return value.Trim(',', '}'); // Remove trailing comma or closing bracket
+            return propDetailList;
         }
 
     }
