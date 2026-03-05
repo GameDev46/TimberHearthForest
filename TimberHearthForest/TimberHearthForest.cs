@@ -1,6 +1,7 @@
 using Epic.OnlineServices;
 using HarmonyLib;
 using OWML.Common;
+using OWML.Logging;
 using OWML.ModHelper;
 using OWML.Utils;
 using Steamworks;
@@ -20,8 +21,12 @@ namespace TimberHearthForest
     {
         public static TimberHearthForest Instance;
 
+        private const float MAX_FIREFLY_DISTANCE = 100.0f;
+
         private List<GameObject> spawnedTrees = new List<GameObject>();
         private List<GameObject> spawnedGrass = new List<GameObject>();
+
+        private List<ParticleSystem> spawnedFireflies = new List<ParticleSystem>();
 
         private Sector timberHearthSector;
         private Sector quantumMoonSector;
@@ -74,6 +79,9 @@ namespace TimberHearthForest
 
             string grassDensityPreset = config.GetSettingsValue<string>("grassDensity");
             UpdatePropDensity(grassDensityPreset, "grass");
+
+            string fireflyDensityPreset = ModHelper.Config.GetSettingsValue<string>("fireflyDensity");
+            UpdatePropDensity(fireflyDensityPreset, "firefly");
         }
 
         private void LoadAndSpawnProps(string jsonFilePath)
@@ -99,9 +107,10 @@ namespace TimberHearthForest
 
         IEnumerator SpawnTrees(List<PropDetails> treeData)
         {
-            // Clear the stored trees and grass tufts
+            // Clear the stored trees, grass tufts and particle systems
             spawnedTrees = new List<GameObject>();
             spawnedGrass = new List<GameObject>();
+            spawnedFireflies = new List<ParticleSystem>();
 
             // Wait for scene to load
             yield return new WaitForSeconds(3f);
@@ -118,7 +127,7 @@ namespace TimberHearthForest
             ModHelper.Console.WriteLine("Located TimberHearth_Body object successfully", MessageType.Success);
 
             // Locate the tree template gameobject
-            const string treeTemplatePath = "QuantumMoon_Body/Sector_QuantumMoon/State_TH/Interactables_THState/Crater_Surface/Surface_AlpineTrees_Single/QAlpine_Tree_.25 (1)/";
+            const string treeTemplatePath = "QuantumMoon_Body/Sector_QuantumMoon/State_TH/Interactables_THState/Crater_Surface/Surface_AlpineTrees_Single/QAlpine_Tree_.25 (1)";
             GameObject treeTemplate = GetGameObjectAtPath(treeTemplatePath);
 
             if (treeTemplate == null)
@@ -134,7 +143,7 @@ namespace TimberHearthForest
             }
 
             // Locate the grass template gameobject
-            const string grassTemplatePath = "TimberHearth_Body/Sector_TH/Sector_Village/Sector_LowerVillage/DetailPatches_LowerVillage/LandingGeyserVillageArea/Foliage_TH_GrassPatch (10)/";
+            const string grassTemplatePath = "TimberHearth_Body/Sector_TH/Sector_Village/Sector_LowerVillage/DetailPatches_LowerVillage/LandingGeyserVillageArea/Foliage_TH_GrassPatch (10)";
             GameObject grassTemplate = GetGameObjectAtPath(grassTemplatePath);
 
             if (grassTemplate == null)
@@ -169,6 +178,8 @@ namespace TimberHearthForest
             grassParent.transform.localPosition = Vector3.zero;
             grassParent.transform.localRotation = Quaternion.identity;
 
+            int index = 0;
+
             foreach (var detail in treeData) {
                 // Spawn the tree
                 GameObject treeClone = Instantiate(treeTemplate);
@@ -200,6 +211,10 @@ namespace TimberHearthForest
 
                 spawnedTrees.Add(treeClone);
 
+                // Check to add the firefly particle effects
+                if (index % 10 == 0) AddFireflies(treeClone);
+                index++;
+
                 /* ------------ */
                 /* GRASS TUFTS */
                 /* ------------*/
@@ -217,6 +232,8 @@ namespace TimberHearthForest
                 grassClone.transform.localRotation = Quaternion.Euler(detail.rotation.x, detail.rotation.y, detail.rotation.z);
                 grassClone.transform.localScale = new Vector3(randomScale, randomScale, randomScale);
 
+                grassClone.GetComponent<Renderer>()?.enabled = true;
+
                 spawnedGrass.Add(grassClone);
             }
 
@@ -228,6 +245,9 @@ namespace TimberHearthForest
 
             string grassDensityPreset = ModHelper.Config.GetSettingsValue<string>("grassDensity");
             UpdatePropDensity(treeDensityPreset, "grass");
+
+            string fireflyDensityPreset = ModHelper.Config.GetSettingsValue<string>("fireflyDensity");
+            UpdatePropDensity(fireflyDensityPreset, "firefly");
         }
 
         private void OnEnterTimberHearth(SectorDetector detector)
@@ -246,17 +266,70 @@ namespace TimberHearthForest
             foreach (string bundle in assetBundles) StreamingManager.LoadStreamingAssets(bundle);
         }
 
+        void AddFireflies(GameObject tree)
+        {
+            GameObject fireflyObj = new GameObject("Fireflies");
+            fireflyObj.transform.SetParent(tree.transform, false);
+            fireflyObj.transform.localPosition = Vector3.up * 5.0f;
+
+            var ps = fireflyObj.AddComponent<ParticleSystem>();
+
+            ps.Pause();
+
+            var main = ps.main;
+            main.loop = false;
+            main.startLifetime = UnityEngine.Random.Range(4f, 10f);
+            main.startSpeed = UnityEngine.Random.Range(0.1f, 0.3f);
+            main.startSize = UnityEngine.Random.Range(0.02f, 0.04f);
+            main.maxParticles = 60;
+            main.simulationSpace = ParticleSystemSimulationSpace.Local;
+
+            var emission = ps.emission;
+            emission.rateOverTime = 6f;
+
+            var noise = ps.noise;
+            noise.enabled = true;
+            noise.scrollSpeed = 1.0f;
+            noise.octaveCount = 4;
+            noise.octaveScale = 0.7f;
+            noise.positionAmount = 1.0f;
+
+            var shape = ps.shape;
+            shape.meshSpawnMode = ParticleSystemShapeMultiModeValue.Random;
+            shape.shapeType = ParticleSystemShapeType.Box;
+            shape.scale = new Vector3(40.0f, 10.0f, 40.0f);
+
+            var velocity = ps.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.y = 0.1f;
+
+            Material fireflyMaterial = new Material(Shader.Find("Standard"));
+            fireflyMaterial.EnableKeyword("_EMISSION");
+            fireflyMaterial.SetColor("_EmissionColor", new Color(1f, 0.6f, 0f) * 2.0f);
+
+            var renderer = ps.GetComponent<ParticleSystemRenderer>();
+            renderer.material = fireflyMaterial;
+
+            spawnedFireflies.Add(ps);
+        }
+
         private void UpdatePropDensity(string densityDescriptor, string spawnType)
         {
             if (spawnedTrees == null && spawnType == "tree")
             {
-                ModHelper.Console.WriteLine("spawnedTrees not initialized yet.", MessageType.Warning);
+                ModHelper.Console.WriteLine("spawnedTrees is not initialized yet.", MessageType.Warning);
                 return;
             }
 
             if (spawnedGrass == null && spawnType == "grass")
             {
-                ModHelper.Console.WriteLine("spawnedGrass not initialized yet.", MessageType.Warning);
+                ModHelper.Console.WriteLine("spawnedGrass is not initialized yet.", MessageType.Warning);
+                return;
+            }
+
+            if (spawnedFireflies == null && spawnType == "firefly")
+            {
+                ModHelper.Console.WriteLine("spawnedFireflies is not initialized yet.", MessageType.Warning);
                 return;
             }
 
@@ -266,7 +339,8 @@ namespace TimberHearthForest
             {
                 case "Hidden":
                     if (spawnType == "tree") density = spawnedTrees.Count * 2;
-                    else density = spawnedGrass.Count * 2;
+                    if (spawnType == "grass") density = spawnedGrass.Count * 2;
+                    if (spawnType == "firefly") density = spawnedFireflies.Count * 2;
                     break;
                 case "Low":
                     density = 4;
@@ -285,40 +359,31 @@ namespace TimberHearthForest
                     return;
             }
 
+            int propCount = 0;
+            if (spawnType == "tree") propCount = spawnedTrees.Count;
+            if (spawnType == "grass") propCount = spawnedGrass.Count;
+            if (spawnType == "firefly") propCount = spawnedFireflies.Count;
+
             int spawnTicker = 0;
 
-            if (spawnType == "tree")
+            for (int i = 0; i < propCount; i++)
             {
-                for (int i = 0; i < spawnedTrees.Count; i++)
+                if (spawnTicker >= density)
                 {
-                    if (spawnTicker >= density)
-                    {
-                        spawnedTrees[i].SetActive(true);
-                        spawnTicker = 0;
-                    }
-                    else
-                    {
-                        spawnedTrees[i].SetActive(false);
-                    }
+                    if (spawnType == "tree") spawnedTrees[i].SetActive(true);
+                    if (spawnType == "grass") spawnedGrass[i].SetActive(true);
+                    if (spawnType == "firefly") spawnedFireflies[i].transform.gameObject.SetActive(true);
 
-                    spawnTicker++;
+                    spawnTicker = 0;
                 }
-            } else
-            {
-                for (int i = 0; i < spawnedGrass.Count; i++)
+                else
                 {
-                    if (spawnTicker >= density)
-                    {
-                        spawnedGrass[i].SetActive(true);
-                        spawnTicker = 0;
-                    }
-                    else
-                    {
-                        spawnedGrass[i].SetActive(false);
-                    }
-
-                    spawnTicker++;
+                    if (spawnType == "tree") spawnedTrees[i].SetActive(false);
+                    if (spawnType == "grass") spawnedGrass[i].SetActive(false);
+                    if (spawnType == "firefly") spawnedFireflies[i].transform.gameObject.SetActive(false);
                 }
+
+                spawnTicker++;
             }
 
             ModHelper.Console.WriteLine($"Sucessfully updated Timber Hearth {spawnType} detail mode", MessageType.Success);
@@ -332,30 +397,124 @@ namespace TimberHearthForest
             foreach (var s in obj.GetComponentsInChildren<ShapeVisibilityTracker>(true)) Destroy(s);
         }
 
-        public GameObject GetGameObjectAtPath(string path)
+        public void Update()
         {
-            string[] step_names = path.Split('/');
+            // Get the sun and Timber Hearth's world position
+            AstroObject THAstroObject = Locator.GetAstroObject(AstroObject.Name.TimberHearth);
+            AstroObject sunAstroObject = Locator.GetAstroObject(AstroObject.Name.Sun);
 
-            GameObject go = GameObject.Find(step_names[0]);
+            OWRigidbody playerBody = Locator.GetPlayerBody();
 
+            // If Timber Hearth, the sun or the player cannot be found then skip
+            if (!THAstroObject || !sunAstroObject || !playerBody) return;
+
+            Vector3 THPosition = THAstroObject.transform.position;
+            Vector3 sunPos = sunAstroObject.transform.position;
+
+            // Calculate the vector from Timber Hearth to the sun (no need to normalise)
+            Vector3 sunDirFromTH = sunPos - THPosition;
+
+            foreach (ParticleSystem fireflyPS in spawnedFireflies)
+            {
+                // Check whether the firefly effect is close enough to be enabled
+                float distSqr = (fireflyPS.transform.position - playerBody.transform.position).sqrMagnitude;
+                bool withinRange = distSqr < MAX_FIREFLY_DISTANCE * MAX_FIREFLY_DISTANCE;
+
+                // Check if it is currently night, if not then disable
+                Vector3 THWorldNormal = fireflyPS.transform.position - THPosition;
+
+                // Calculate the dot product
+                float dot = sunDirFromTH.x * THWorldNormal.x + sunDirFromTH.y * THWorldNormal.y + sunDirFromTH.z * THWorldNormal.z;
+                bool isNight = dot < 0.0f;
+
+                bool isEnabled = withinRange && isNight;
+
+                // Get the main section of the particle system
+                var main = fireflyPS.main;
+
+                if (isEnabled && !main.loop)
+                {
+                    // Play the particle system
+                    fireflyPS.Play();
+
+                    // Enable looping
+                    main.loop = true;
+                }
+
+                if (!isEnabled)
+                {
+                    // Disable looping
+                    main.loop = false;
+
+                    // Pause the particle system if there are no longer any particles left
+                    if (fireflyPS.particleCount <= 0) fireflyPS.Pause();
+                }
+            }
+        }
+
+        private GameObject GetGameObjectAtPath(string path)
+        {
+            string[] stepNames = path.Split('/');
+
+            // Get the first step in the path's corresponding GameObject
+            GameObject go = FindRootObject(stepNames[0]);
+
+            // If the first step doesn't exist then return null
             if (go == null)
             {
-                ModHelper.Console.WriteLine($"Couldn't find object at path: {path}, failed to locate {step_names[0]}", MessageType.Error);
+                ModHelper.Console.WriteLine($"Couldn't find object at path: {path}, failed to locate {stepNames[0]}", MessageType.Error);
                 return null;
             }
 
-            for (int i = 1; i < step_names.Length - 1; i++) {
-                Transform next_step = go.transform.Find(step_names[i]);
+            // Iterate through the remaining steps in the path and find the corresponding child GameObject at each step
+            for (int i = 1; i < stepNames.Length; i++)
+            {
+                Transform next_step = null;
 
-                if (next_step == null) {
-                    ModHelper.Console.WriteLine($"Couldn't find object at path: {path}, failed to locate {step_names[i]}", MessageType.Error);
+                // Check all the children for the net step
+                foreach (Transform child in go.transform)
+                {
+                    if (child.name == stepNames[i])
+                    {
+                        next_step = child;
+                        break;
+                    }
+                }
+
+                // If the next step doesn't exist then return null
+                if (next_step == null)
+                {
+                    ModHelper.Console.WriteLine($"Couldn't find object at path: {path}, failed to locate {stepNames[i]}", MessageType.Error);
                     return null;
                 }
 
+                // Update the current GameObject to the next step in the path
                 go = next_step.gameObject;
             }
 
+            // Return the final GameObject
             return go;
+        }
+
+        private GameObject FindRootObject(string name)
+        {
+            // Loop through each unity scene
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                // Get the current scene
+                Scene scene = SceneManager.GetSceneAt(i);
+
+                // If the scene is not loaded then skip
+                if (!scene.isLoaded) continue;
+
+                // Loop over each root component of the scene and try to find the wanted root
+                foreach (GameObject root in scene.GetRootGameObjects())
+                {
+                    if (root.name == name) return root;
+                }
+            }
+
+            return null;
         }
 
         private List<PropDetails> ParseJson(string json)

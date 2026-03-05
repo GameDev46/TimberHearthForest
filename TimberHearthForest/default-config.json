@@ -28,6 +28,19 @@
         "Hidden"
       ],
       "tooltip": "Changes the amount of extra grass tufts on Timber Hearth"
+    },
+    "fireflyDensity": {
+      "title": "Firefly Density",
+      "type": "selector",
+      "value": "Ultra",
+      "options": [
+        "Ultra",
+        "High",
+        "Medium",
+        "Low",
+        "Hidden"
+      ],
+      "tooltip": "Changes the amount of firefly emitters on Timber Hearth"
     }
 
   }
