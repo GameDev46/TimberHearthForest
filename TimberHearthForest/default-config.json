@@ -2,7 +2,16 @@
   "$schema": "https://raw.githubusercontent.com/ow-mods/owml/master/schemas/config_schema.json",
   "enabled": true,
   "settings": {
-
+    "treeCollidersEnabled": {
+      "title": "Tree Collision",
+      "type": "selector",
+      "value": "Disabled",
+      "options": [
+        "Enabled",
+        "Disabled"
+      ],
+      "tooltip": "Toggles on/off the tree colliders"
+    },
     "treeDensity": {
       "title": "Tree Density",
       "type": "selector",
@@ -28,6 +37,17 @@
         "Hidden"
       ],
       "tooltip": "Changes the amount of extra grass tufts on Timber Hearth"
+    },
+    "fireflyEnabled": {
+      "title": "Fireflies Visible",
+      "type": "selector",
+      "value": "Night",
+      "options": [
+        "Night",
+        "Day",
+        "Day and Night"
+      ],
+      "tooltip": "Toggles on/off the tree colliders"
     },
     "fireflyDensity": {
       "title": "Firefly Density",

@@ -31,6 +31,9 @@ namespace TimberHearthForest
         private Sector timberHearthSector;
         private Sector quantumMoonSector;
 
+        private bool firefliesEnabledAtNight = true;
+        private bool firefliesEnabledAtDay = true;
+
         private List<string> assetBundles = new List<string>();
 
         public class PropDetails
@@ -77,10 +80,17 @@ namespace TimberHearthForest
             string treeDensityPreset = config.GetSettingsValue<string>("treeDensity");
             UpdatePropDensity(treeDensityPreset, "tree");
 
+            bool treeCollidersEnabled = config.GetSettingsValue<string>("treeCollidersEnabled") == "Enabled";
+            ToggleTreeHitboxes(treeCollidersEnabled);
+
             string grassDensityPreset = config.GetSettingsValue<string>("grassDensity");
             UpdatePropDensity(grassDensityPreset, "grass");
 
-            string fireflyDensityPreset = ModHelper.Config.GetSettingsValue<string>("fireflyDensity");
+            string fireflyEnabledState = config.GetSettingsValue<string>("fireflyEnabled");
+            firefliesEnabledAtNight = fireflyEnabledState == "Night" || fireflyEnabledState == "Day and Night";
+            firefliesEnabledAtDay = fireflyEnabledState == "Day" || fireflyEnabledState == "Day and Night";
+
+            string fireflyDensityPreset = config.GetSettingsValue<string>("fireflyDensity");
             UpdatePropDensity(fireflyDensityPreset, "firefly");
         }
 
@@ -178,9 +188,15 @@ namespace TimberHearthForest
             grassParent.transform.localPosition = Vector3.zero;
             grassParent.transform.localRotation = Quaternion.identity;
 
+            // Used to group firefly clones together for a cleaner hierachy
+            GameObject firefliesParent = new GameObject("TH_Fireflies_Surface");
+            firefliesParent.transform.SetParent(timberHearthSector.transform, false);
+            firefliesParent.transform.localPosition = Vector3.zero;
+            firefliesParent.transform.localRotation = Quaternion.identity;
+
             int index = 0;
 
-            foreach (var detail in treeData) {
+            foreach (PropDetails detail in treeData) {
                 // Spawn the tree
                 GameObject treeClone = Instantiate(treeTemplate);
 
@@ -209,10 +225,17 @@ namespace TimberHearthForest
                     DestroyImmediate(tracker);
                 }
 
+                // Add a collider to the trees
+                CapsuleCollider coll = treeClone.AddComponent<CapsuleCollider>();
+                coll.enabled = false;
+                coll.radius = 0.3f;
+                coll.height = 20.0f;
+                coll.center = Vector3.up * 7.0f;
+
                 spawnedTrees.Add(treeClone);
 
                 // Check to add the firefly particle effects
-                if (index % 10 == 0) AddFireflies(treeClone);
+                if (index % 10 == 0) AddFireflies(treeClone.transform, firefliesParent);
                 index++;
 
                 /* ------------ */
@@ -243,8 +266,15 @@ namespace TimberHearthForest
             string treeDensityPreset = ModHelper.Config.GetSettingsValue<string>("treeDensity");
             UpdatePropDensity(treeDensityPreset, "tree");
 
+            bool treeCollidersEnabled = ModHelper.Config.GetSettingsValue<string>("treeCollidersEnabled") == "Enabled";
+            ToggleTreeHitboxes(treeCollidersEnabled);
+
             string grassDensityPreset = ModHelper.Config.GetSettingsValue<string>("grassDensity");
             UpdatePropDensity(treeDensityPreset, "grass");
+
+            string fireflyEnabledState = ModHelper.Config.GetSettingsValue<string>("fireflyEnabled");
+            firefliesEnabledAtNight = fireflyEnabledState == "Night" || fireflyEnabledState == "Day and Night";
+            firefliesEnabledAtDay = fireflyEnabledState == "Day" || fireflyEnabledState == "Day and Night";
 
             string fireflyDensityPreset = ModHelper.Config.GetSettingsValue<string>("fireflyDensity");
             UpdatePropDensity(fireflyDensityPreset, "firefly");
@@ -266,11 +296,14 @@ namespace TimberHearthForest
             foreach (string bundle in assetBundles) StreamingManager.LoadStreamingAssets(bundle);
         }
 
-        void AddFireflies(GameObject tree)
+        void AddFireflies(Transform treeTransform, GameObject fireflyHolder)
         {
             GameObject fireflyObj = new GameObject("Fireflies");
-            fireflyObj.transform.SetParent(tree.transform, false);
-            fireflyObj.transform.localPosition = Vector3.up * 5.0f;
+            fireflyObj.transform.SetParent(fireflyHolder.transform, false);
+
+            fireflyObj.transform.localPosition = treeTransform.localPosition + Vector3.up * 5.0f;
+            fireflyObj.transform.localRotation = Quaternion.Euler(treeTransform.localRotation.x, treeTransform.localRotation.y, treeTransform.localRotation.z);
+            fireflyObj.transform.localScale = Vector3.one;
 
             var ps = fireflyObj.AddComponent<ParticleSystem>();
 
@@ -311,6 +344,14 @@ namespace TimberHearthForest
             renderer.material = fireflyMaterial;
 
             spawnedFireflies.Add(ps);
+        }
+
+        private void ToggleTreeHitboxes(bool enabled)
+        {
+            foreach (GameObject tree in spawnedTrees)
+            {
+                tree.GetComponent<CapsuleCollider>()?.enabled = enabled;
+            } 
         }
 
         private void UpdatePropDensity(string densityDescriptor, string spawnType)
@@ -385,8 +426,6 @@ namespace TimberHearthForest
 
                 spawnTicker++;
             }
-
-            ModHelper.Console.WriteLine($"Sucessfully updated Timber Hearth {spawnType} detail mode", MessageType.Success);
         }
 
         private void StripQuantumComponents(GameObject obj)
@@ -427,7 +466,10 @@ namespace TimberHearthForest
                 float dot = sunDirFromTH.x * THWorldNormal.x + sunDirFromTH.y * THWorldNormal.y + sunDirFromTH.z * THWorldNormal.z;
                 bool isNight = dot < 0.0f;
 
-                bool isEnabled = withinRange && isNight;
+                bool enabledAtNight = isNight && firefliesEnabledAtNight;
+                bool enabledAtDay = !isNight && firefliesEnabledAtDay;
+
+                bool isEnabled = withinRange && (enabledAtNight || enabledAtDay);
 
                 // Get the main section of the particle system
                 var main = fireflyPS.main;
