@@ -22,12 +22,9 @@ namespace TimberHearthForest
     {
         public static TimberHearthForest Instance;
 
-        private const int SECTOR_SIZE = 100;
-
-        private const float MAX_GRASS_DISTANCE = 200.0f;
         private const float MAX_FIREFLY_DISTANCE = 100.0f;
 
-        private Dictionary<Vector3Int, GameObject> propSectors = new Dictionary<Vector3Int, GameObject>();
+        private Dictionary<Vector3Int, ForestSectorUtils.ForestSector> forestSectors = new Dictionary<Vector3Int, ForestSectorUtils.ForestSector>();
 
         private List<GameObject> spawnedTrees = new List<GameObject>();
         private List<GameObject> spawnedGrass = new List<GameObject>();
@@ -82,7 +79,7 @@ namespace TimberHearthForest
             LoadAndSpawnProps(treeSpawnDataPath);
         }
 
-        /// Called by OWML; once at the start and upon each config setting change.
+        /// Called by OWML, once at the start and upon each config setting change.
         public override void Configure(IModConfig config)
         {
             string treeDensityPreset = config.GetSettingsValue<string>("treeDensity");
@@ -104,28 +101,32 @@ namespace TimberHearthForest
 
         private void LoadAndSpawnProps(string jsonFilePath)
         {
-
+            // If the tree spawn data file doesn't exist then exit
             if (!System.IO.File.Exists(jsonFilePath))
             {
                 ModHelper.Console.WriteLine($"Couldn't find {jsonFilePath}", MessageType.Error);
                 return;
             }
 
+            // Load the tree spawn data and convert it to a list of PropDetails
             string json = System.IO.File.ReadAllText(jsonFilePath);
             List<PropDetails> spawnData = ParseJson(json);
 
+            // If the spawn data is null then exit
             if (spawnData == null)
             {
                 ModHelper.Console.WriteLine("Loaded data is null.", MessageType.Error);
                 return;
             }
 
+            // Spawn the trees on the surface of Timber Hearth
             StartCoroutine(SpawnTrees(spawnData));
         }
 
         IEnumerator SpawnTrees(List<PropDetails> treeData)
         {
-            propSectors = new Dictionary<Vector3Int, GameObject>();
+            // Clear the forest sectors
+            forestSectors = new Dictionary<Vector3Int, ForestSectorUtils.ForestSector>();
 
             // Clear the stored trees, grass tufts and particle systems
             spawnedTrees = new List<GameObject>();
@@ -201,19 +202,18 @@ namespace TimberHearthForest
             foreach (PropDetails detail in treeData) {
                 // Get the detail's sector location
                 Vector3 THLocalCoords = new Vector3(detail.position.x, detail.position.y, detail.position.z);
-                Vector3Int sectorCoords = GetSectorCoordsFromTHCoords(THLocalCoords);
+                Vector3Int sectorCoords = ForestSectorUtils.GetSectorCoordsFromTHCoords(THLocalCoords);
 
                 Vector3 detailWorldCoords = timberHearthBody.transform.TransformPoint(THLocalCoords);
 
                 // Check if the sector exists
-                if (!propSectors.ContainsKey(sectorCoords))
+                if (!forestSectors.ContainsKey(sectorCoords))
                 {
-                    // Create the sector holder
-                    GameObject sectorHolder = CreateTHSector(sectorsParent, sectorCoords);
-                    propSectors[sectorCoords] = sectorHolder;
+                    // Create the new sector
+                    forestSectors[sectorCoords] = ForestSectorUtils.CreateSector(sectorsParent, sectorCoords);
                 }
 
-                GameObject sectorParent = propSectors[sectorCoords];
+                GameObject sectorParent = forestSectors[sectorCoords].sectorParent;
                 Transform treeParent = sectorParent.transform.Find("TH_Trees_Surface");
                 Transform grassParent = sectorParent.transform.Find("TH_Grass_Surface");
                 Transform firefliesParent = sectorParent.transform.Find("TH_Fireflies_Surface");
@@ -283,20 +283,24 @@ namespace TimberHearthForest
 
             ModHelper.Console.WriteLine("All trees and grass tufts have been spawned.", MessageType.Success);
 
-            // Update the tree and grass density
+            // Update the tree density
             string treeDensityPreset = ModHelper.Config.GetSettingsValue<string>("treeDensity");
             UpdatePropDensity(treeDensityPreset, "tree");
 
+            // Update the state of tree colliders
             bool treeCollidersEnabled = ModHelper.Config.GetSettingsValue<string>("treeCollidersEnabled") == "Enabled";
             ToggleTreeHitboxes(treeCollidersEnabled);
 
+            // Update the grass density
             string grassDensityPreset = ModHelper.Config.GetSettingsValue<string>("grassDensity");
             UpdatePropDensity(treeDensityPreset, "grass");
 
+            // Update firefly visibility
             string fireflyEnabledState = ModHelper.Config.GetSettingsValue<string>("fireflyEnabled");
             firefliesEnabledAtNight = fireflyEnabledState == "Night" || fireflyEnabledState == "Day and Night";
             firefliesEnabledAtDay = fireflyEnabledState == "Day" || fireflyEnabledState == "Day and Night";
 
+            // Update the firefly density
             string fireflyDensityPreset = ModHelper.Config.GetSettingsValue<string>("fireflyDensity");
             UpdatePropDensity(fireflyDensityPreset, "firefly");
         }
@@ -367,57 +371,9 @@ namespace TimberHearthForest
             spawnedFireflies.Add(ps);
         }
 
-        private Vector3Int GetSectorCoordsFromTHCoords(Vector3 THCoords)
-        {
-            int x = Mathf.RoundToInt(THCoords.x / (float)SECTOR_SIZE);
-            int y = Mathf.RoundToInt(THCoords.y / (float)SECTOR_SIZE);
-            int z = Mathf.RoundToInt(THCoords.z / (float)SECTOR_SIZE);
-
-            Vector3Int coords = new Vector3Int(x, y, z);
-            return coords;
-        }
-
-        private Vector3 GetTHCoordsFromSector(Vector3Int SectorCoords)
-        {
-            float x = (float)(SectorCoords.x * SECTOR_SIZE);
-            float y = (float)(SectorCoords.y * SECTOR_SIZE);
-            float z = (float)(SectorCoords.z * SECTOR_SIZE);
-
-            Vector3 coords = new Vector3(x, y, z);
-            return coords;
-        }
-
-        private GameObject CreateTHSector(GameObject sectorHolder, Vector3Int sectorCoords)
-        {
-            // Used to group tree clones together for a cleaner hierachy
-            GameObject sectorParent = new GameObject($"TH_Forest_Sector_{sectorCoords.x}_{sectorCoords.y}_{sectorCoords.z}");
-            sectorParent.transform.SetParent(sectorHolder.transform, false);
-            sectorParent.transform.localPosition = Vector3.zero;
-            sectorParent.transform.localRotation = Quaternion.identity;
-
-            // Used to group tree clones together for a cleaner hierachy
-            GameObject treeParent = new GameObject("TH_Trees_Surface");
-            treeParent.transform.SetParent(sectorParent.transform, false);
-            treeParent.transform.localPosition = Vector3.zero;
-            treeParent.transform.localRotation = Quaternion.identity;
-
-            // Used to group grass clones together for a cleaner hierachy
-            GameObject grassParent = new GameObject("TH_Grass_Surface");
-            grassParent.transform.SetParent(sectorParent.transform, false);
-            grassParent.transform.localPosition = Vector3.zero;
-            grassParent.transform.localRotation = Quaternion.identity;
-
-            // Used to group firefly clones together for a cleaner hierachy
-            GameObject firefliesParent = new GameObject("TH_Fireflies_Surface");
-            firefliesParent.transform.SetParent(sectorParent.transform, false);
-            firefliesParent.transform.localPosition = Vector3.zero;
-            firefliesParent.transform.localRotation = Quaternion.identity;
-
-            return sectorParent;
-        }
-
         private void ToggleTreeHitboxes(bool enabled)
         {
+            // Loop over each tree and toggle its hitbox
             foreach (GameObject tree in spawnedTrees)
             {
                 tree.GetComponent<CapsuleCollider>()?.enabled = enabled;
@@ -444,14 +400,17 @@ namespace TimberHearthForest
                 return;
             }
 
+            int propCount = 0;
+            if (spawnType == "tree") propCount = spawnedTrees.Count;
+            if (spawnType == "grass") propCount = spawnedGrass.Count;
+            if (spawnType == "firefly") propCount = spawnedFireflies.Count;
+
             int density = 0;
 
             switch (densityDescriptor)
             {
                 case "Hidden":
-                    if (spawnType == "tree") density = spawnedTrees.Count * 2;
-                    if (spawnType == "grass") density = spawnedGrass.Count * 2;
-                    if (spawnType == "firefly") density = spawnedFireflies.Count * 2;
+                    density = propCount * 2;
                     break;
                 case "Low":
                     density = 4;
@@ -469,11 +428,6 @@ namespace TimberHearthForest
                     ModHelper.Console.WriteLine($"Unknown {spawnType} density setting: {density}", MessageType.Error);
                     return;
             }
-
-            int propCount = 0;
-            if (spawnType == "tree") propCount = spawnedTrees.Count;
-            if (spawnType == "grass") propCount = spawnedGrass.Count;
-            if (spawnType == "firefly") propCount = spawnedFireflies.Count;
 
             int spawnTicker = 0;
 
@@ -530,56 +484,37 @@ namespace TimberHearthForest
             if (!THAstroObject || !playerCamera) return;
 
             Vector3 playerCoordsTHSpace = THAstroObject.transform.InverseTransformPoint(playerCamera.transform.position);
-            Vector3Int playerSectorCoords = GetSectorCoordsFromTHCoords(playerCoordsTHSpace);
+            Vector3Int playerSectorCoords = ForestSectorUtils.GetSectorCoordsFromTHCoords(playerCoordsTHSpace);
+
+            // Calculate the player's distance from Timber Hearth
+            float playerTHDistance = playerCoordsTHSpace.magnitude;
+
+            // Fill the array initially with the player's location
+            Vector3Int[] cameraSectorLocations = { playerSectorCoords, playerSectorCoords, playerSectorCoords };
 
             // If the satellite exists, calculate its Timber Hearth sector grid coordinates
-            Vector3Int satelliteSectorCoords = new Vector3Int(0, 0, 0);
             if (THSatelliteObject)
             {
                 Vector3 satelliteCoordsTHSpace = THAstroObject.transform.InverseTransformPoint(THSatelliteObject.transform.position);
-                satelliteSectorCoords = GetSectorCoordsFromTHCoords(satelliteCoordsTHSpace);
+                Vector3Int satelliteSectorCoords = ForestSectorUtils.GetSectorCoordsFromTHCoords(satelliteCoordsTHSpace);
+                // Add the satellites sector location to the camera locations list
+                cameraSectorLocations[1] = satelliteSectorCoords;
             }
 
             // If the probe exists, calculate its Timber Hearth sector grid coordinates
-            Vector3Int probeSectorCoords = new Vector3Int(0, 0, 0);
             if (playerProbe)
             {
                 Vector3 probeCoordsTHSpace = THAstroObject.transform.InverseTransformPoint(playerProbe.transform.position);
-                probeSectorCoords = GetSectorCoordsFromTHCoords(probeCoordsTHSpace);
+                Vector3Int probeSectorCoords = ForestSectorUtils.GetSectorCoordsFromTHCoords(probeCoordsTHSpace);
+                // Add the probes sector location to the camera locations list
+                cameraSectorLocations[2] = probeSectorCoords;
             }
 
-            float playerTHDistance = playerCoordsTHSpace.magnitude;
-
-            const float MAX_DISTANCE = 800.0f;
-            const float MIN_DISTANCE = 250.0f;
-
-            // When the player is closer to Timber Hearth, more trees are hidden by the horizon
-            const float FAR_DOT = -0.4f;
-            const float CLOSE_DOT = 0.3f;
-
-            float playerDistanceFract = Mathf.Clamp01((playerTHDistance - MIN_DISTANCE) / (MAX_DISTANCE - MIN_DISTANCE));
-            float currentDot = Mathf.Lerp(CLOSE_DOT, FAR_DOT, playerDistanceFract);
-
-            foreach (KeyValuePair<Vector3Int, GameObject> pair in propSectors)
+            foreach (KeyValuePair<Vector3Int, ForestSectorUtils.ForestSector> pair in forestSectors)
             {
-                GameObject sectorHolder = pair.Value;
-                Vector3Int sectorCoords = pair.Key;
-
-                // Props which are blocked from the player's view by Timber Hearth are hidden
-                float dot = (float)Dot(sectorCoords, playerSectorCoords);
-
-                // If the satellite exists, then calculate whether the tree group is blocked from its view
-                float satelliteDot = -10.0f;
-                if (playerProbe) satelliteDot = (float)Dot(sectorCoords, satelliteSectorCoords);
-
-                // If the probe exists, then calculate whether the tree group is blocked from its view
-                float probeDot = -10.0f;
-                if (playerProbe) probeDot = (float)Dot(sectorCoords, probeSectorCoords);
-
                 // Occlusion only occurs when neither the probe, satellite or player can see the tree group
-                bool isOccluded = Mathf.Max(dot, probeDot, satelliteDot) < currentDot;
-
-                sectorHolder.SetActive(!isOccluded);
+                bool isVisible = ForestSectorUtils.IsSectorVisible(pair.Value, cameraSectorLocations, playerTHDistance);
+                pair.Value.sectorParent.SetActive(isVisible);
             }
         }
 
