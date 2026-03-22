@@ -139,31 +139,36 @@ namespace TimberHearthForest
             List<Vector2> uvs = new List<Vector2>();
             List<int> triangles = new List<int>();
 
-            for (int lat = 0; lat <= latitudeSegments; lat++)
+            for (int latitude = 0; latitude <= latitudeSegments; latitude++)
             {
-                float a1 = Mathf.PI * lat / latitudeSegments;
-                float sin1 = Mathf.Sin(a1);
-                float cos1 = Mathf.Cos(a1);
+                // Calculate the angle corresponding to the current latitude segment
+                float latitudeAngle = Mathf.PI * latitude / latitudeSegments;
+                float sinLat = Mathf.Sin(latitudeAngle);
+                float cosLat = Mathf.Cos(latitudeAngle);
 
-                for (int lon = 0; lon <= longitudeSegments; lon++)
+                for (int longitude = 0; longitude <= longitudeSegments; longitude++)
                 {
-                    float a2 = 2 * Mathf.PI * lon / longitudeSegments;
-                    float sin2 = Mathf.Sin(a2);
-                    float cos2 = Mathf.Cos(a2);
+                    // Calculate the angle corresponding to the current longitude segment
+                    float longitudeAngle = 2 * Mathf.PI * longitude / longitudeSegments;
+                    float sinLongitude = Mathf.Sin(longitudeAngle);
+                    float cosLongitude = Mathf.Cos(longitudeAngle);
 
-                    Vector3 pos = new Vector3(sin1 * cos2, cos1, sin1 * sin2) * radius;
+                    // Convert 3D polar coordinates to Cartesian coordiantes
+                    Vector3 pos = new Vector3(sinLat * cosLongitude, cosLat, sinLat * sinLongitude) * radius;
 
+                    // Add the new vertix, compute the normal and UV
                     vertices.Add(pos);
                     normals.Add(pos.normalized);
-                    uvs.Add(new Vector2((float)lon / longitudeSegments, (float)lat / latitudeSegments));
+                    uvs.Add(new Vector2((float)longitude / longitudeSegments, (float)latitude / latitudeSegments));
                 }
             }
 
-            for (int lat = 0; lat < latitudeSegments; lat++)
+            // Construct the mesh
+            for (int latitude = 0; latitude < latitudeSegments; latitude++)
             {
-                for (int lon = 0; lon < longitudeSegments; lon++)
+                for (int longitude = 0; longitude < longitudeSegments; longitude++)
                 {
-                    int current = lat * (longitudeSegments + 1) + lon;
+                    int current = latitude * (longitudeSegments + 1) + longitude;
                     int next = current + longitudeSegments + 1;
 
                     triangles.Add(current);

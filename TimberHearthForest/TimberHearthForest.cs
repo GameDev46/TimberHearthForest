@@ -303,7 +303,7 @@ namespace TimberHearthForest
                 treeClone.transform.SetParent(treeParent, false);
 
                 // Remove quantum components to prevent weird interactions with the tree clones
-                StripQuantumComponents(treeClone);
+                RemoveQuantumComponents(treeClone);
 
                 // Add some random rotation to make the trees look more natural
                 Vector3 randOffsets = new Vector3(
@@ -359,7 +359,7 @@ namespace TimberHearthForest
                 spawnedGrass.Add(grassClone);
             }
 
-            ModHelper.Console.WriteLine("All trees and grass tufts have been spawned.", MessageType.Success);
+            ModHelper.Console.WriteLine("All trees, grass tufts and fireflies have been created successfully.", MessageType.Success);
 
             // Update the tree density
             string treeDensityPreset = ModHelper.Config.GetSettingsValue<string>("treeDensity");
@@ -490,11 +490,11 @@ namespace TimberHearthForest
 
             switch (densityDescriptor)
             {
-                case "Ultra": density = 1; break;
-                case "High": density = 2; break;
+                case "Ultra":   density = 1; break;
+                case "High":    density = 2; break;
                 case "Medium":  density = 3; break;
-                case "Low": density = 4; break;
-                case "Hidden": density = propCount * 2; break;
+                case "Low":     density = 4; break;
+                case "Hidden":  density = propCount * 2; break;
                 default:
                     ModHelper.Console.WriteLine($"Unknown {spawnType} density setting: {density}", MessageType.Error);
                     return;
@@ -523,7 +523,7 @@ namespace TimberHearthForest
             }
         }
 
-        private void StripQuantumComponents(GameObject obj)
+        private void RemoveQuantumComponents(GameObject obj)
         {
             foreach (var q in obj.GetComponentsInChildren<QuantumObject>(true)) Destroy(q);
             foreach (var q in obj.GetComponentsInChildren<SocketedQuantumObject>(true)) Destroy(q);
@@ -542,7 +542,7 @@ namespace TimberHearthForest
             // Control whether each firefly group is currently visible
             UpdateFireflies();
 
-            // Scrolls the cloud texture
+            // Scroll the cloud textures
             UpdateClouds();
         }
 
@@ -658,9 +658,19 @@ namespace TimberHearthForest
 
         private void UpdateClouds()
         {
+            if (cloudObjects == null) return;
+
             for (int i = 0; i < cloudObjects.Count; i++)
             {
-                cloudObjects[i]?.transform.GetComponent<MeshRenderer>()?.material?.mainTextureOffset = new Vector2(Time.time * cloudVelocities[i], 0);
+                try
+                {
+                    cloudObjects[i]?.transform.GetComponent<MeshRenderer>()?.material?.mainTextureOffset = new Vector2(Time.time * cloudVelocities[i], 0);
+                }
+                catch
+                {
+                    // This occurs when the player quits the game to the main menu as the cloud gameobjects are all null
+                    continue;
+                }
             }
         }
 
