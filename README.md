@@ -26,7 +26,7 @@ For the easiest method of installation, use the [Outer Wilds Mod Manager](https:
 
 <table>
   <tr>
-    <th><img width="1920" height="1080" alt="Screenshot (224)" src="https://github.com/user-attachments/assets/0a12b387-cab2-4ffa-9352-291c2536e50b"/></th>
+    <th><img width="1920" alt="Screenshot (224)" src="https://github.com/user-attachments/assets/0a12b387-cab2-4ffa-9352-291c2536e50b"/></th>
     <th><img width="1920" alt="The observatory and ship launch platform in front of a cloudy night sky" src="https://github.com/user-attachments/assets/60718cda-bf38-42b4-8aa8-172779b0ec51"/></th>
   </tr>
   <tr>
