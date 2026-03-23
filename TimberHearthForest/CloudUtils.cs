@@ -11,6 +11,8 @@ namespace TimberHearthForest
 {
     internal class CloudUtils
     {
+        public static float CLOUD_SPHERE_RADIUS = 295.0f;
+
         private static string modFolderPath = "";
 
         private static IModConsole modConsole;
@@ -89,7 +91,7 @@ namespace TimberHearthForest
 
             cloudSphere.transform.localPosition = Vector3.zero;
             cloudSphere.transform.localRotation = Quaternion.identity;
-            cloudSphere.transform.localScale = Vector3.one * 295.0f;
+            cloudSphere.transform.localScale = Vector3.one * CLOUD_SPHERE_RADIUS;
 
             MeshRenderer cloudRenderer = cloudSphere.GetComponent<MeshRenderer>();
             cloudRenderer.material = mat;

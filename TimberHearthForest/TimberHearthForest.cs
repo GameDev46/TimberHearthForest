@@ -660,11 +660,29 @@ namespace TimberHearthForest
         {
             if (cloudObjects == null) return;
 
+            Transform activeCamTransform = Locator.GetActiveCamera()?.transform;
+            Transform timberHearthTransform = Locator.GetAstroObject(AstroObject.Name.TimberHearth)?.transform;
+
+            float playerTHDistance = 0.0f;
+
+            if (activeCamTransform != null && timberHearthTransform != null)
+            {
+                playerTHDistance = Vector3.Distance(activeCamTransform.position, timberHearthTransform.position);
+                playerTHDistance -= CloudUtils.CLOUD_SPHERE_RADIUS;
+                playerTHDistance = Mathf.Clamp01(playerTHDistance * 0.01f);
+            }
+
             for (int i = 0; i < cloudObjects.Count; i++)
             {
                 try
                 {
                     cloudObjects[i]?.transform.GetComponent<MeshRenderer>()?.material?.mainTextureOffset = new Vector2(Time.time * cloudVelocities[i], 0);
+
+                    // Only show in facing clouds when the player is in the atmosphere
+                    if (cloudObjects[i].name.Contains("_In"))
+                    {
+                        cloudObjects[i]?.transform.GetComponent<MeshRenderer>()?.material?.color = new Color(1.0f, 1.0f, 1.0f, 1.0f - playerTHDistance);
+                    }
                 }
                 catch
                 {
