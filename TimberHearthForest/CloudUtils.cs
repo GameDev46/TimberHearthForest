@@ -2,20 +2,23 @@
 using OWML.ModHelper;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 namespace TimberHearthForest
 {
     internal class CloudUtils
     {
-        public static float CLOUD_SPHERE_RADIUS = 295.0f;
+        public static float MAX_CLOUD_SPHERE_RADIUS = 295.0f;
 
         private static string modFolderPath = "";
-
         private static IModConsole modConsole;
+
+        private static Material cloudMaterial;
 
         public static void SetModDirectoryPath(string dirPath)
         {
@@ -27,8 +30,25 @@ namespace TimberHearthForest
             modConsole = console;
         }
 
-        public static void CreateCloud(GameObject cloudHolder, string textureName, string normalName, float cloudSpeed, bool isOutwardFacing, ref List<GameObject> cloudObjects, ref List<float> cloudVelocities)
+        public static void LoadCloudsAssetBundle()
         {
+            try
+            {
+                AssetBundle bundle = AssetBundle.LoadFromFile(modFolderPath + "Assets/cloudbundle");
+                cloudMaterial = bundle.LoadAsset<Material>("CloudMaterial");
+            }
+            catch (Exception e)
+            {
+                modConsole.WriteLine($"Failed to load the cloud asset bundle from Assets/cloudbundle: {e}", MessageType.Error);
+            }
+        }
+
+
+        public static void CreateCloud(GameObject cloudHolder, float cloudRadius, string textureName, string normalName, float cloudSpeed, bool isOutwardFacing, ref List<GameObject> cloudObjects, ref List<float> cloudVelocities)
+        {
+            // Check if the cloud radius is larger than the maximum
+            if (MAX_CLOUD_SPHERE_RADIUS < cloudRadius) MAX_CLOUD_SPHERE_RADIUS = cloudRadius;
+
             // Load the cloud texture
             Texture2D albedoMap = FileLoadingUtils.LoadTexture(modFolderPath + "Assets/" + textureName + ".png", modConsole);
 
@@ -38,32 +58,34 @@ namespace TimberHearthForest
                 return;
             }
 
-            Shader standardShader = Shader.Find("Standard");
-
-            if (standardShader == null)
+            if (cloudMaterial == null)
             {
-                modConsole.WriteLine($"Failed to locate the Standard material shader for {textureName}", MessageType.Error);
+                modConsole.WriteLine($"Failed to locate the cloud material from Assets/cloudbundle", MessageType.Error);
                 return;
             }
 
-            // Create the cloud material
-            Material mat = new Material(standardShader);
+            cloudMaterial.SetFloat("_AmbientStrength", isOutwardFacing ? 0.15f : 0.04f);
+            cloudMaterial.SetColor("_AmbientColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
 
-            // Set rendering mode to transparent
-            mat.SetFloat("_Mode", 3);
+            cloudMaterial.SetFloat("_Metallic", 0.0f);
+            cloudMaterial.SetFloat("_Glossiness", 0.0f);
 
-            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-            mat.SetInt("_ZWrite", 0);
-            mat.DisableKeyword("_ALPHATEST_ON");
-            mat.EnableKeyword("_ALPHABLEND_ON");
-            mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-            mat.renderQueue = 3000;
+            cloudMaterial.SetFloat("_FresnelPower", isOutwardFacing ? 0.0f : 0.0f);
+            cloudMaterial.SetFloat("_FresnelFade", 8.0f);
+            cloudMaterial.SetFloat("_AlphaBoost", isOutwardFacing ? 3.0f : 1.5f);
 
-            mat.mainTexture = albedoMap;
-            mat.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+            cloudMaterial.mainTexture = albedoMap;
+            cloudMaterial.color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
 
-            // Load the cloud texture
+            /*var geyserStrips = new List<(int, int)>
+            {
+                (516 - 84, 522 - 84),
+                (530 - 84, 536 - 84),
+                (582 - 84, 588 - 84),
+                (591 - 84, 597 - 84)
+            };*/
+
+            // Load the cloud normal texture
             Texture2D normalMap = FileLoadingUtils.LoadTexture(modFolderPath + "Assets/" + normalName + ".png", modConsole);
 
             if (normalMap == null)
@@ -72,9 +94,10 @@ namespace TimberHearthForest
             }
             else
             {
-                mat.EnableKeyword("_NORMALMAP");
-                mat.SetTexture("_BumpMap", normalMap);
-                mat.SetFloat("_BumpScale", 0.8f);
+                cloudMaterial.SetTexture("_NormalTex", normalMap);
+                cloudMaterial.SetFloat("_NormalStrength", 0.25f);
+                // If the cloud faces towards space then the normal map should be inverted
+                if (isOutwardFacing) cloudMaterial.SetFloat("_NormalStrength", -0.25f);
             }
 
             // Create the cloud sphere
@@ -91,15 +114,12 @@ namespace TimberHearthForest
 
             cloudSphere.transform.localPosition = Vector3.zero;
             cloudSphere.transform.localRotation = Quaternion.identity;
-            cloudSphere.transform.localScale = Vector3.one * CLOUD_SPHERE_RADIUS;
+            cloudSphere.transform.localScale = Vector3.one * cloudRadius;
 
             MeshRenderer cloudRenderer = cloudSphere.GetComponent<MeshRenderer>();
-            cloudRenderer.material = mat;
+            cloudRenderer.material = cloudMaterial;
             cloudRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             cloudRenderer.receiveShadows = true;
-
-            // If the cloud faces towards space then the normal map should be inverted
-            if (isOutwardFacing) cloudRenderer.material.SetFloat("_BumpScale", -0.8f);
 
             // Store the in facing cloud sphere renderer
             cloudObjects.Add(cloudSphere);

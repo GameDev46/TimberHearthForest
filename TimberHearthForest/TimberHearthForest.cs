@@ -165,14 +165,16 @@ namespace TimberHearthForest
             CloudUtils.SetModDirectoryPath(ModHelper.Manifest.ModFolderPath);
             CloudUtils.SetModConsole(ModHelper.Console);
 
-            CloudUtils.CreateCloud(cloudHolder, "timberHearthClouds", "timberHearthCloudsNormal", 0.0017f, true, ref cloudObjects, ref cloudVelocities);
-            CloudUtils.CreateCloud(cloudHolder, "timberHearthClouds", "timberHearthCloudsNormal", 0.0017f, false, ref cloudObjects, ref cloudVelocities);
+            CloudUtils.LoadCloudsAssetBundle();
 
-            CloudUtils.CreateCloud(cloudHolder, "timberHearthClouds2", "timberHearthCloudsNormal2", 0.0025f, true, ref cloudObjects, ref cloudVelocities);
-            CloudUtils.CreateCloud(cloudHolder, "timberHearthClouds2", "timberHearthCloudsNormal2", 0.0025f, false, ref cloudObjects, ref cloudVelocities);
+            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds", "timberHearthCloudsNormal", 0.0017f, true, ref cloudObjects, ref cloudVelocities);
+            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds", "timberHearthCloudsNormal", 0.0017f, false, ref cloudObjects, ref cloudVelocities);
 
-            CloudUtils.CreateCloud(cloudHolder, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, true, ref cloudObjects, ref cloudVelocities);
-            CloudUtils.CreateCloud(cloudHolder, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, false, ref cloudObjects, ref cloudVelocities);
+            CloudUtils.CreateCloud(cloudHolder, 292.0f, "timberHearthClouds2", "timberHearthCloudsNormal2", 0.0025f, true, ref cloudObjects, ref cloudVelocities);
+            CloudUtils.CreateCloud(cloudHolder, 292.0f, "timberHearthClouds2", "timberHearthCloudsNormal2", 0.0025f, false, ref cloudObjects, ref cloudVelocities);
+
+            CloudUtils.CreateCloud(cloudHolder, 288.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, true, ref cloudObjects, ref cloudVelocities);
+            CloudUtils.CreateCloud(cloudHolder, 288.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, false, ref cloudObjects, ref cloudVelocities);
 
             // Apply the initial cloud visibility setting
             string cloudDensityPreset = ModHelper.Config.GetSettingsValue<string>("cloudDensity");
@@ -668,7 +670,7 @@ namespace TimberHearthForest
             if (activeCamTransform != null && timberHearthTransform != null)
             {
                 playerTHDistance = Vector3.Distance(activeCamTransform.position, timberHearthTransform.position);
-                playerTHDistance -= CloudUtils.CLOUD_SPHERE_RADIUS;
+                playerTHDistance -= CloudUtils.MAX_CLOUD_SPHERE_RADIUS;
                 playerTHDistance = Mathf.Clamp01(playerTHDistance * 0.01f);
             }
 
