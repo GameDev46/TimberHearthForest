@@ -34,7 +34,26 @@ namespace TimberHearthForest
         {
             try
             {
-                AssetBundle bundle = AssetBundle.LoadFromFile(modFolderPath + "Assets/cloudbundle");
+                string platformFolder = "";
+
+                switch (Application.platform)
+                {
+                    case RuntimePlatform.WindowsPlayer:
+                    case RuntimePlatform.WindowsEditor:
+                        platformFolder = "Windows";
+                        break;
+                    case RuntimePlatform.LinuxPlayer:
+                        platformFolder = "Linux";
+                        break;
+                    case RuntimePlatform.OSXPlayer:
+                        platformFolder = "Mac";
+                        break;
+                    default:
+                        modConsole.WriteLine($"Unsupported platform: {Application.platform}", MessageType.Warning);
+                        return;
+                }
+
+                AssetBundle bundle = AssetBundle.LoadFromFile(modFolderPath + "Assets/" + platformFolder + "/cloudbundle");
                 cloudMaterial = bundle.LoadAsset<Material>("CloudMaterial");
             }
             catch (Exception e)
@@ -66,14 +85,14 @@ namespace TimberHearthForest
 
             Material mat = UnityEngine.Material.Instantiate(cloudMaterial);
 
-            mat.SetFloat("_AmbientStrength", isOutwardFacing ? 0.1f: 0.05f);
+            mat.SetFloat("_AmbientStrength", isOutwardFacing ? 0.3f: 0.1f);
             mat.SetColor("_AmbientColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
 
             mat.SetFloat("_Metallic", 0.0f);
             mat.SetFloat("_Glossiness", 0.0f);
 
-            mat.SetFloat("_FresnelPower", isOutwardFacing ? 2.0f : 0.0f);
-            mat.SetFloat("_FresnelFade", isOutwardFacing ? 3.0f : 0.0f);
+            mat.SetFloat("_FresnelPower", isOutwardFacing ? 1.0f : 0.0f);
+            mat.SetFloat("_FresnelFade", isOutwardFacing ? 1.0f : 0.0f);
             mat.SetFloat("_AlphaBoost", 1.0f);
 
             mat.mainTexture = albedoMap;
