@@ -18,6 +18,7 @@ namespace TimberHearthForest
         private static string modFolderPath = "";
         private static IModConsole modConsole;
 
+        private static AssetBundle cloudBundle;
         private static Material cloudMaterial;
 
         public static void SetModDirectoryPath(string dirPath)
@@ -34,29 +35,37 @@ namespace TimberHearthForest
         {
             try
             {
-                string platformFolder = "";
+                if (cloudMaterial == null) {
+                    string platformFolder = "";
 
-                switch (Application.platform)
-                {
-                    case RuntimePlatform.WindowsPlayer:
-                    case RuntimePlatform.WindowsEditor:
-                        platformFolder = "Windows";
-                        break;
-                    case RuntimePlatform.LinuxPlayer:
-                        platformFolder = "Linux";
-                        break;
-                    case RuntimePlatform.OSXPlayer:
-                        platformFolder = "Mac";
-                        break;
-                    default:
-                        modConsole.WriteLine($"Unsupported platform: {Application.platform}", MessageType.Warning);
+                    switch (Application.platform)
+                    {
+                        case RuntimePlatform.WindowsPlayer:
+                        case RuntimePlatform.WindowsEditor:
+                            platformFolder = "Windows";
+                            break;
+                        case RuntimePlatform.LinuxPlayer:
+                            platformFolder = "Linux";
+                            break;
+                        case RuntimePlatform.OSXPlayer:
+                            platformFolder = "Mac";
+                            break;
+                        default:
+                            modConsole.WriteLine($"Unsupported platform: {Application.platform}", MessageType.Warning);
+                            return;
+                    }
+
+                    string bundlePath = Path.Combine(modFolderPath, "Assets", platformFolder, "cloudbundle");
+                    cloudBundle = AssetBundle.LoadFromFile(bundlePath);
+
+                    if (cloudBundle == null)
+                    {
+                        modConsole.WriteLine("Failed to load cloud AssetBundle", MessageType.Error);
                         return;
+                    }
+
+                    cloudMaterial = cloudBundle.LoadAsset<Material>("CloudMaterial");
                 }
-
-                string bundlePath = Path.Combine(modFolderPath, "Assets", platformFolder, "cloudbundle");
-                AssetBundle bundle = AssetBundle.LoadFromFile(bundlePath);
-
-                cloudMaterial = bundle.LoadAsset<Material>("CloudMaterial");
             }
             catch (Exception e)
             {
