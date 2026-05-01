@@ -80,6 +80,54 @@
       ],
       "tooltip": "Controls the amount of firefly emitters on Timber Hearth"
     },
+    "volumetricSeparator": {
+      "type": "separator"
+    },
+    "volumetricCloudsEnabled": {
+      "title": "Volumetric Clouds",
+      "type": "selector",
+      "value": "Enabled",
+      "options": [
+        "Enabled",
+        "Disabled"
+      ],
+      "tooltip": "Toggles on/off volumetric clouds (experimental)"
+    },
+    "volumetricCloudQuality": {
+      "title": "Volumetric Cloud Quality",
+      "type": "selector",
+      "value": "Medium",
+      "options": [
+        "Ultra",
+        "High",
+        "Medium",
+        "Low"
+      ],
+      "tooltip": "Controls the raymarching quality of the volumetric clouds"
+    },
+    "volumetricCloudSize": {
+      "title": "Volumetric Cloud Size",
+      "type": "selector",
+      "value": "Medium",
+      "options": [
+        "Large",
+        "Medium",
+        "Small"
+      ],
+      "tooltip": "Controls the average size of the volumetric clouds"
+    },
+    "volumetricCloudCoverage": {
+      "title": "Volumetric Cloud Coverage",
+      "type": "selector",
+      "value": "Medium",
+      "options": [
+        "Full",
+        "High",
+        "Medium",
+        "Low"
+      ],
+      "tooltip": "Controls the average sky coverage of the volumetric clouds"
+    },
     "optimisationSeparator": {
       "type": "separator"
     },

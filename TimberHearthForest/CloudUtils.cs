@@ -21,6 +21,9 @@ namespace TimberHearthForest
         private static AssetBundle cloudBundle;
         private static Material cloudMaterial;
 
+        private static AssetBundle volumetricCloudBundle;
+        private static Material volumetricCloudMaterial;
+
         public static void SetModDirectoryPath(string dirPath)
         {
             modFolderPath = dirPath;
@@ -74,7 +77,7 @@ namespace TimberHearthForest
         }
 
 
-        public static void CreateCloud(GameObject cloudHolder, float cloudRadius, string textureName, string normalName, float cloudSpeed, bool isOutwardFacing, ref List<GameObject> cloudObjects, ref List<float> cloudVelocities)
+        public static void CreateCloud(GameObject cloudHolder, float cloudRadius, string textureName, string normalName, float cloudSpeed, bool isOutwardFacing, ref List<(GameObject, float)> cloudObjects)
         {
             // Check if the cloud radius is larger than the maximum
             if (MAX_CLOUD_SPHERE_RADIUS < cloudRadius) MAX_CLOUD_SPHERE_RADIUS = cloudRadius;
@@ -156,8 +159,114 @@ namespace TimberHearthForest
             cloudRenderer.receiveShadows = true;
 
             // Store the in facing cloud sphere renderer
-            cloudObjects.Add(cloudSphere);
-            cloudVelocities.Add(cloudSpeed);
+            cloudObjects.Add((cloudSphere, cloudSpeed));
+        }
+
+        public static void LoadVolumetricCloudsAssetBundle()
+        {
+            try
+            {
+                if (volumetricCloudMaterial == null)
+                {
+                    string platformFolder = "";
+
+                    switch (Application.platform)
+                    {
+                        case RuntimePlatform.WindowsPlayer:
+                        case RuntimePlatform.WindowsEditor:
+                            platformFolder = "Windows";
+                            break;
+                        case RuntimePlatform.LinuxPlayer:
+                            platformFolder = "Linux";
+                            break;
+                        case RuntimePlatform.OSXPlayer:
+                            platformFolder = "Mac";
+                            break;
+                        default:
+                            modConsole.WriteLine($"Unsupported platform: {Application.platform}", MessageType.Warning);
+                            return;
+                    }
+
+                    string bundlePath = Path.Combine(modFolderPath, "Assets", platformFolder, "volumetricclouds");
+                    volumetricCloudBundle = AssetBundle.LoadFromFile(bundlePath);
+
+                    if (volumetricCloudBundle == null)
+                    {
+                        modConsole.WriteLine("Failed to load volumetric clouds AssetBundle", MessageType.Error);
+                        return;
+                    }
+
+                    volumetricCloudMaterial = volumetricCloudBundle.LoadAsset<Material>("VolumetricCloudMaterial");
+                }
+            }
+            catch (Exception e)
+            {
+                modConsole.WriteLine($"Failed to load the volumetric cloud asset bundle from Assets/volumetricclouds: {e}", MessageType.Error);
+            }
+        }
+
+        public static void CreateVolumetricCloud(GameObject cloudHolder, float cloudInnerRadius, float cloudOuterRadius, ref List<GameObject> volumetricClouds)
+        {
+
+            if (volumetricCloudMaterial == null)
+            {
+                modConsole.WriteLine($"Failed to locate the volumetric cloud material from Assets/volumetricclouds", MessageType.Error);
+                return;
+            }
+
+            Material mat = UnityEngine.Material.Instantiate(volumetricCloudMaterial);
+
+            mat.SetFloat("_ErosionStrength", 0.3f);
+
+            mat.SetFloat("_OuterRadius", cloudOuterRadius);
+            mat.SetFloat("_InnerRadius", cloudInnerRadius);
+
+            mat.SetInt("_NumSteps", 35);
+            mat.SetInt("_NumSunSteps", 12);
+            mat.SetFloat("_MinStepSize", 0.5f);
+
+            mat.SetFloat("_CloudScale", 1.5f);
+            mat.SetFloat("_DensityMultiplier", 1.0f);
+            mat.SetFloat("_DensityThreshold", 0.65f);
+
+            mat.SetFloat("_LightAbsorptionThroughCloud", 0.8f);
+            mat.SetFloat("_LightAbsorptionTowardsSun", 0.4f);
+            mat.SetFloat("_DarknessThreshold", 0.2f);
+            mat.SetFloat("_PhaseG", 0.5f);
+            mat.SetFloat("_PhaseIntensity", 4.0f);
+            mat.SetFloat("_ForwardScatteringBias", 0.2f);
+
+            mat.SetVector("_SunDirection", new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+            mat.SetColor("_SunColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
+            mat.SetColor("_AmbientColor", new Color(0.2f, 0.2f, 0.2f, 1.0f));
+
+            mat.SetFloat("_PlanetShadowStrength", 1.0f);
+            mat.SetFloat("_PlanetShadowSharpness", 1.0f);
+
+            mat.SetVector("_Offset", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+            mat.SetVector("_Center", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+
+            // Create the cloud sphere
+            GameObject cloudSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            cloudSphere.transform.SetParent(cloudHolder.transform, false);
+
+            cloudSphere.GetComponent<MeshFilter>()?.mesh = CreateSphereMesh(64, 64, 1.0f);
+            cloudSphere.GetComponent<MeshFilter>()?.mesh = InvertMesh(cloudSphere.GetComponent<MeshFilter>()?.mesh);
+
+            cloudSphere.name = "Volumetric Clouds";
+            cloudSphere.GetComponent<SphereCollider>()?.enabled = false;
+
+            cloudSphere.transform.localPosition = Vector3.zero;
+            cloudSphere.transform.localRotation = Quaternion.identity;
+            cloudSphere.transform.localScale = Vector3.one * cloudOuterRadius * 1.5f;
+
+            MeshRenderer cloudRenderer = cloudSphere.GetComponent<MeshRenderer>();
+            cloudRenderer.material = mat;
+            cloudRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            cloudRenderer.receiveShadows = false;
+
+            // Store the volumetric cloud sphere gameobject
+            volumetricClouds.Add(cloudSphere);
         }
 
         private static Mesh InvertMesh(Mesh original)

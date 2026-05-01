@@ -25,17 +25,18 @@ namespace TimberHearthForest
     {
         public static TimberHearthForest Instance;
 
+        private bool IN_SOLAR_SYSTEM = false;
         private const float MAX_FIREFLY_DISTANCE = 100.0f;
 
         private Dictionary<Vector3Int, ForestSectorUtils.ForestSector> forestSectors = new Dictionary<Vector3Int, ForestSectorUtils.ForestSector>();
 
         private List<GameObject> spawnedTrees = new List<GameObject>();
         private List<GameObject> spawnedGrass = new List<GameObject>();
-
         private List<ParticleSystem> spawnedFireflies = new List<ParticleSystem>();
 
-        private List<GameObject> cloudObjects = new List<GameObject>();
-        private List<float> cloudVelocities = new List<float>();
+        private List<(GameObject, float)> cloudObjects = new List<(GameObject, float)>();
+
+        private List<GameObject> volumetricCloudObjects = new List<GameObject>();
 
         private GameObject THSatelliteObject;
 
@@ -77,7 +78,10 @@ namespace TimberHearthForest
 
         public void OnCompleteSceneLoad(OWScene previousScene, OWScene newScene)
         {
+            IN_SOLAR_SYSTEM = false;
             if (newScene != OWScene.SolarSystem) return;
+            IN_SOLAR_SYSTEM = true;
+
             //ModHelper.Console.WriteLine("Loaded into solar system!", MessageType.Success);
 
             // Loaded into Solar System!
@@ -115,9 +119,16 @@ namespace TimberHearthForest
             string fireflyDensityPreset = config.GetSettingsValue<string>("fireflyDensity");
             UpdatePropDensity(fireflyDensityPreset, "firefly");
 
+            // Update whether volumetric clouds are enabled
+            bool volumetricCloudsEnabled = config.GetSettingsValue<string>("volumetricCloudsEnabled") == "Enabled";
+            string volumetricCloudQuality = config.GetSettingsValue<string>("volumetricCloudQuality");
+            string volumetricCloudSize = config.GetSettingsValue<string>("volumetricCloudSize");
+            string volumetricCloudCoverage = config.GetSettingsValue<string>("volumetricCloudCoverage");
+            UpdateVolumetricCloudSettings(volumetricCloudsEnabled, volumetricCloudQuality, volumetricCloudSize, volumetricCloudCoverage);
+
             // Update whether clouds are enabled
             string cloudDensityPreset = config.GetSettingsValue<string>("cloudDensity");
-            UpdateCloudDensity(cloudDensityPreset);
+            UpdateCloudDensity(cloudDensityPreset, volumetricCloudsEnabled);
         }
 
         private void LoadAndSpawnProps(string spawnDataFileLoc)
@@ -151,8 +162,8 @@ namespace TimberHearthForest
         private void SpawnAndSetupClouds()
         {
             // Clear the stored cloud renderers
-            cloudObjects = new List<GameObject>();
-            cloudVelocities = new List<float>();
+            cloudObjects = new List<(GameObject, float)>();
+            volumetricCloudObjects = new List<GameObject>();
 
             AstroObject timberHearthAstroObject = Locator.GetAstroObject(AstroObject.Name.TimberHearth);
             GameObject cloudHolder = timberHearthAstroObject?.GetComponentInChildren<Sector>()?.transform.gameObject;
@@ -167,24 +178,34 @@ namespace TimberHearthForest
             CloudUtils.SetModConsole(ModHelper.Console);
 
             CloudUtils.LoadCloudsAssetBundle();
+            CloudUtils.LoadVolumetricCloudsAssetBundle();
 
-            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds", "timberHearthCloudsNormal", 0.0017f, true, ref cloudObjects, ref cloudVelocities);
-            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds", "timberHearthCloudsNormal", 0.0017f, false, ref cloudObjects, ref cloudVelocities);
+            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds", "timberHearthCloudsNormal", 0.0017f, true, ref cloudObjects);
+            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds", "timberHearthCloudsNormal", 0.0017f, false, ref cloudObjects);
 
-            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds2", "timberHearthCloudsNormal2", 0.0025f, true, ref cloudObjects, ref cloudVelocities);
-            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds2", "timberHearthCloudsNormal2", 0.0025f, false, ref cloudObjects, ref cloudVelocities);
+            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds2", "timberHearthCloudsNormal2", 0.0025f, true, ref cloudObjects);
+            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds2", "timberHearthCloudsNormal2", 0.0025f, false, ref cloudObjects);
 
-            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, true, ref cloudObjects, ref cloudVelocities);
-            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, false, ref cloudObjects, ref cloudVelocities);
+            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, true, ref cloudObjects);
+            CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, false, ref cloudObjects);
+
+            CloudUtils.CreateVolumetricCloud(cloudHolder, 285.0f, 330.0f, ref volumetricCloudObjects);
+
+            // Update whether volumetric clouds are enabled
+            bool volumetricCloudsEnabled = ModHelper.Config.GetSettingsValue<string>("volumetricCloudsEnabled") == "Enabled";
+            string volumetricCloudQuality = ModHelper.Config.GetSettingsValue<string>("volumetricCloudQuality");
+            string volumetricCloudSize = ModHelper.Config.GetSettingsValue<string>("volumetricCloudSize");
+            string volumetricCloudCoverage = ModHelper.Config.GetSettingsValue<string>("volumetricCloudCoverage");
+            UpdateVolumetricCloudSettings(volumetricCloudsEnabled, volumetricCloudQuality, volumetricCloudSize, volumetricCloudCoverage);
 
             // Apply the initial cloud visibility setting
             string cloudDensityPreset = ModHelper.Config.GetSettingsValue<string>("cloudDensity");
-            UpdateCloudDensity(cloudDensityPreset);
+            UpdateCloudDensity(cloudDensityPreset, volumetricCloudsEnabled);
         }
 
-        private void UpdateCloudDensity(string cloudDensityPreset)
+        private void UpdateCloudDensity(string cloudDensityPreset, bool volumetricCloudsEnabled)
         {
-            int cloudDensity = 0;
+            int cloudDensity = 3;
 
             switch (cloudDensityPreset)
             {
@@ -194,12 +215,73 @@ namespace TimberHearthForest
                 case "Hidden":  cloudDensity = 0; break;
                 default:
                     ModHelper.Console.WriteLine($"Unknown cloud density setting: {cloudDensity}", MessageType.Error);
-                    return;
+                    break;
             }
+
+            // Hide the flat clouds if volumetric clouds are enabled
+            if (volumetricCloudsEnabled) cloudDensity = 0;
 
             for (int i = 0; i < cloudObjects.Count; i++)
             {
-                cloudObjects[i]?.SetActive(i < cloudDensity * 2);
+                cloudObjects[i].Item1?.SetActive(i < cloudDensity * 2);
+            }
+        }
+
+        private void UpdateVolumetricCloudSettings(bool enabled, string quality, string size, string coverage)
+        {
+
+            int raymarchSteps = 35;
+            int sunRaymarchSteps = 12;
+
+            switch (quality)
+            {
+                case "Ultra":   raymarchSteps = 70; sunRaymarchSteps = 20; break;
+                case "High":    raymarchSteps = 50; sunRaymarchSteps = 15; break;
+                case "Medium":  raymarchSteps = 35; sunRaymarchSteps = 12; break;
+                case "Low":     raymarchSteps = 20; sunRaymarchSteps = 12; break;
+                default:
+                    ModHelper.Console.WriteLine($"Unknown volumetric cloud quality setting: {quality}", MessageType.Error);
+                    break;
+            }
+
+            float sizeMultiplier = 1.5f;
+
+            switch (size)
+            {
+                case "Large":   sizeMultiplier = 1.0f; break;
+                case "Medium":  sizeMultiplier = 1.5f; break;
+                case "Small":   sizeMultiplier = 2.0f; break;
+                default:
+                    ModHelper.Console.WriteLine($"Unknown volumetric cloud size setting: {size}", MessageType.Error);
+                    break;
+            }
+
+            float coverageThreshold = 0.65f;
+
+            switch (coverage)
+            {
+                case "Full":    coverageThreshold = 0.47f; break;
+                case "High":    coverageThreshold = 0.55f; break;
+                case "Medium":  coverageThreshold = 0.65f; break;
+                case "Low":     coverageThreshold = 0.72f; break;
+                default:
+                    ModHelper.Console.WriteLine($"Unknown volumetric cloud coverage setting: {coverage}", MessageType.Error);
+                    break;
+            }
+
+            foreach (GameObject cloud in volumetricCloudObjects)
+            {
+                cloud?.SetActive(enabled);
+
+                Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
+
+                if (cloudMat != null)
+                {
+                    cloudMat.SetInt("_NumSteps", raymarchSteps);
+                    cloudMat.SetInt("_NumSunSteps", sunRaymarchSteps);
+                    cloudMat.SetFloat("_CloudScale", sizeMultiplier);
+                    cloudMat.SetFloat("_DensityThreshold", coverageThreshold);
+                }
             }
         }
 
@@ -536,6 +618,7 @@ namespace TimberHearthForest
 
         public void Update()
         {
+            if (!IN_SOLAR_SYSTEM) return;
             // Hide trees and grass which are far away and disable far away colliders to help improve performance
             // Starting Benchmark (No Mod):  ~100fps on planet, ~80fps off planet
             // No Optimisation Benchmark: ~60fps on planet, ~50fps off planet
@@ -547,6 +630,9 @@ namespace TimberHearthForest
 
             // Scroll the cloud textures
             UpdateClouds();
+
+            // Update the volumetric clouds
+            UpdateVolumetricClouds();
         }
 
         private void UpdateSectors()
@@ -679,14 +765,11 @@ namespace TimberHearthForest
             {
                 try
                 {
-                    Material cloudMaterial = cloudObjects[i]?.transform.GetComponent<MeshRenderer>()?.material;
-                    cloudMaterial?.mainTextureOffset = new Vector2(Time.time * cloudVelocities[i], 0);
+                    Material cloudMaterial = cloudObjects[i].Item1.transform.GetComponent<MeshRenderer>().material;
+                    cloudMaterial?.mainTextureOffset = new Vector2(Time.time * cloudObjects[i].Item2, 0);
 
                     // Only show in facing clouds when the player is in the atmosphere
-                    if (cloudObjects[i].name.Contains("_In"))
-                    {
-                        cloudMaterial?.color = new Color(1.0f, 1.0f, 1.0f, 1.0f - playerTHDistance);
-                    }
+                    if (cloudObjects[i].Item1.name.Contains("_In")) cloudMaterial.color = new Color(1.0f, 1.0f, 1.0f, 1.0f - playerTHDistance);
 
                     // When the player is below the cloud layer, then each of the 3 cloud layers are spaced apart
                     float baseScale = CloudUtils.MAX_CLOUD_SPHERE_RADIUS;
@@ -694,11 +777,44 @@ namespace TimberHearthForest
 
                     float scaleWithDistance = Mathf.Lerp(groundScale, baseScale, playerTHDistance);
 
-                    cloudObjects[i]?.transform.localScale = Vector3.one * scaleWithDistance;
+                    cloudObjects[i].Item1.transform.localScale = Vector3.one * scaleWithDistance;
                 }
                 catch
                 {
                     // This occurs when the player quits the game to the main menu as the cloud gameobjects are all null
+                    continue;
+                }
+            }
+        }
+
+        private void UpdateVolumetricClouds()
+        {
+            if (volumetricCloudObjects == null) return;
+
+            Transform sunTransform = Locator.GetSunTransform();
+
+            for (int i = 0; i < volumetricCloudObjects.Count; i++)
+            {
+                try
+                {
+                    Transform cloud = volumetricCloudObjects[i].transform;
+
+                    // Get the cloud's material
+                    Material mat = cloud.GetComponent<MeshRenderer>().material;
+
+                    Vector4 CloudPosition = new Vector4(cloud.position.x, cloud.position.y, cloud.position.z, 1.0f);
+
+                    Vector3 THToSun = sunTransform.position - cloud.position;
+                    Vector4 sunDirection = new Vector4(THToSun.x, THToSun.y, THToSun.z, 0.0f);
+
+                    if (mat != null)
+                    {
+                        mat.SetVector("_Center", CloudPosition);
+                        mat.SetVector("_SunDirection", sunDirection);
+                    }
+                }
+                catch
+                {
                     continue;
                 }
             }

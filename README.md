@@ -8,7 +8,7 @@
 
 ## Info
 
-This mod covers the barren surface of Timber Hearth with trees and grass and fireflies as well as adding clouds.
+This mod covers the barren surface of Timber Hearth with trees, grass and fireflies as well as adding clouds which can be toggled between volumetric and flat (volumetric is a bit more computationally intensive).
 
 ## Installation
 
@@ -20,7 +20,8 @@ For the easiest method of installation, use the [Outer Wilds Mod Manager](https:
 - Tree hitboxes can be toggled on or off (be careful when you turning hitboxes on, you don't want to be inside a tree when this happens!)
 - Firefly timing can be changed to have them show during the day, night or day and night
 - The tree occlusion optimisation can be toggled on or off (when enabled this hides trees which are out of the camera's view helping to increase performance)
-
+- ```[EXPERIMENTAL]``` Volumetric clouds can be toggled on or off (when off the default plane clouds are used)
+- ```[EXPERIMENTAL]``` The quality, size and coverage of the voluemtric clouds can be adjusted
 
 ## Screenshots
 
