@@ -316,20 +316,20 @@
                 float3 sampleDir;
                 
                 float percentageThruClouds = invLerp(_InnerRadius, _OuterRadius, distanceToCenter);
-                // sampleDir.y = lerp(-1, 1, percentageThruClouds) * .97;
-                sampleDir.y = 1 * .97;
+                sampleDir.y = lerp(-1, 1, percentageThruClouds) * .97;
+                // sampleDir.y = 0 * .97;
                 
                 float mul = (-sampleDir.y) * sampleDir.y + 1.0;
                 mul = sqrt(mul);
 
-                float angle = dot(-toPointDir, sunDir);
+                float angle = dot(toPointDir, sunDir);
                 angle *= UNITY_HALF_PI;
                 
                 float2 vec = float2(cos(angle), sin(angle));
                 sampleDir.xz = mul * vec;
           
                 float4 ambience = texCUBElod(_AmbientTexture, float4(sampleDir, 0));
-                ambience *= 1 - percentageThruClouds;
+                // ambience *= 1 - percentageThruClouds;
                 return ambience.rgb;
             }
 

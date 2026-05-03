@@ -32,27 +32,28 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _AmbientMixFactor: 0.5
-    - _AmbientStrength: 0.1
-    - _CloudScale: 0.62
-    - _DarknessThreshold: 0
+    - _AmbientFalloff: 0.1
+    - _AmbientMixFactor: 0.2
+    - _AmbientStrength: 0.03
+    - _CloudScale: 1.36
+    - _DarknessThreshold: 0.2
     - _Density: 1
     - _DensityMultiplier: 1.16
     - _DensityThreshold: 0.76
-    - _ErosionStrength: -0.92
+    - _ErosionStrength: -0.58
     - _ForwardScatteringBias: 0.2
-    - _InnerRadius: 60
+    - _InnerRadius: 49.31
     - _LightAbsorptionThroughCloud: 0.8
-    - _LightAbsorptionTowardsSun: 0.4
+    - _LightAbsorptionTowardsSun: 0.2
     - _MaxSteps: 64
     - _MinStepSize: 0.1
     - _NumSteps: 80
     - _NumSunSteps: 16
     - _OuterRadius: 80
-    - _PhaseG: 0.15
+    - _PhaseG: 0.5
     - _PhaseIntensity: 6
-    - _PlanetRadius: 50
-    - _PlanetShadowSharpness: 0.1
+    - _PlanetRadius: 23
+    - _PlanetShadowSharpness: 1
     - _PlanetShadowStrength: 0
     - _StepSize: 0.5
     m_Colors:
@@ -60,5 +61,5 @@ Material:
     - _Center: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
-    - _SunColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SunColor: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
     - _SunDirection: {r: 0, g: 0, b: 1, a: 0}
