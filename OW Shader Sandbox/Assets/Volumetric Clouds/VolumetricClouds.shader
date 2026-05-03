@@ -5,33 +5,30 @@
         _CloudNoiseTex ("Cloud Noise Texture", 3D) = "white" {}
         _ErosionStrength ("Erosion Strength", Float) = 0.5
 
-        _OuterRadius ("Outer Radius", Float) = 80
-        _InnerRadius ("Inner Radius", Float) = 10
+        _OuterRadius ("Outer Radius", Float) = 50
+        _InnerRadius ("Inner Radius", Float) = 45
 
-        _NumSteps ("Number of Steps", Int) = 80
+        _NumSteps ("Number of Steps", Int) = 16
         _NumSunSteps ("Number of Sun Steps", Int) = 16
         _MinStepSize ("Minimum Step Size", Float) = 0.1
 
-        _CloudScale ("Cloud Scale", Float) = 0.62
-        _DensityMultiplier ("Density Multiplier", Float) = 1.16
-        _DensityThreshold ("Density Threshold", Float) = 0.76
+        _CloudScale ("Cloud Scale", Float) = 0.3
+        _DensityMultiplier ("Density Multiplier", Float) = 1
+        _DensityThreshold ("Density Threshold", Float) = 0.4
 
-        _LightAbsorptionThroughCloud ("Light Absorption Through Cloud", Float) = 0.8
-        _LightAbsorptionTowardsSun ("Light Absorption Towards Sun", Float) = 0.4
-        _DarknessThreshold ("Darkness Threshold", Float) = 0.2
-        _PhaseG ("Phase G", Float) = 0.5
-        _PhaseIntensity ("Phase Intensity", Float) = 6
-        _ForwardScatteringBias ("Forward Scattering Bias", Float) = 0.2
+        _LightAbsorptionThroughCloud ("Light Absorption Through Cloud", Float) = 1
+        _LightAbsorptionTowardsSun ("Light Absorption Towards Sun", Float) = 1
+        _DarknessThreshold ("Darkness Threshold", Float) = 0
+        _PhaseG ("Phase G", Float) = 0.8
+        _PhaseIntensity ("Phase Intensity", Float) = 1
+        _ForwardScatteringBias ("Forward Scattering Bias", Float) = 0.5
 
         _SunDirection ("Sun Direction", Vector) = (0,1,0,0)
-        _SunColor ("Sun Color", Color) = (1,1,1,1)
+        _SunColor ("Sun Color", Color) = (1,1,0.8,1)
+        _AmbientColor ("Ambient Color", Color) = (0.5,0.5,0.5,1)
 
-        _AmbientTexture ("Ambient Texture", 2D) = "white" {}
-        _AmbientStrength ("Ambient Strength", Float) = 1
-        _AmbientMixFactor ("Ambient Mix Factor", Float) = 0.5
-
-        _PlanetShadowStrength ("Planet Shadow Strength", Float) = 1
-        _PlanetShadowSharpness ("Planet Shadow Sharpness", Float) = 1
+        _PlanetShadowStrength ("Planet Shadow Strength", Float) = 0.5
+        _PlanetShadowSharpness ("Planet Shadow Sharpness", Float) = 2
 
         _Offset ("Offset", Vector) = (0,0,0,0)
         _Center ("Center", Vector) = (0,0,0,0)
@@ -90,10 +87,7 @@
 
             float3 _SunDirection;
             float4 _SunColor;
-
-            sampler2D _AmbientTexture;
-            float _AmbientStrength;
-            float _AmbientMixFactor;
+            float4 _AmbientColor;
 
             float _PlanetShadowStrength;
             float _PlanetShadowSharpness;
@@ -132,7 +126,7 @@
                 return o;
             }
 
-            /*float hash(float3 p)
+            float hash(float3 p)
             {
                 p = frac(p * 0.3183099 + 0.1);
                 p *= 17.0;
@@ -158,7 +152,7 @@
                 }
 
                 return 1.0 - minDist;
-            }*/
+            }
 
             float noise(float3 p)
             {
@@ -198,12 +192,14 @@
                 float detail = noise.b;
                 float warp   = noise.a;
 
+                // Shape
                 float density = base;
 
                 // Erode edges only
                 density -= detail * edge * _ErosionStrength;
 
                 density = saturate(density);
+
                 return density;
             }
 
@@ -299,27 +295,6 @@
                 return _DarknessThreshold + transmitance * (1.0 - _DarknessThreshold);
             }
 
-            float3 GetAmbience(float3 toPointDir, float3 sunDir)
-            {
-                // In the ambience texture the x axis represents the time of day with middle as day and right as night (left is unused)
-                // The y axis represents the y height where top is facing away from light, middle is perpendicular to light and bottom is facing towards the light
-                // https://github.com/ow-mods/outer-wilds-unity-wiki/wiki/Effects-%E2%80%90-Ambient-Light#texture
-                
-                float3 equatorDir = normalize(float3(toPointDir.x, 0.0, toPointDir.z));
-
-                // AIM: 1 at night and 0.5 at day
-                float u = dot(equatorDir, sunDir) * 0.5 + 0.5; // 0 at night and 1 at day
-                u = 1.0 - u * 0.5; // 1 at night and 0.5 at day
-
-                // AIM: 0 when facing away and 1 when at equator
-                float v = 1.0 - max(dot(toPointDir, equatorDir), 0.0); // 0 when facing away and 1 when at equator
-
-                // Sample the ambience texture
-                float4 ambience = tex2Dlod(_AmbientTexture, float4(u, v, 0, 0));
-
-                return ambience.rgb;
-            }
-
             float PhaseHG(float cosTheta, float g)
             {
                 float g2 = g * g;
@@ -368,8 +343,6 @@
                 float transmittance = 1.0;
                 float lightEnergy = 0.0;
 
-                float3 ambientColour = float3(0.0, 0.0, 0.0);
-
                 float stepSize = (outerHit.exitDist - outerHit.entryDist) / _NumSteps;
                 stepSize = max(_MinStepSize, stepSize);
 
@@ -386,15 +359,10 @@
                         float density = GetDensity(worldPos);
 
                         if (density > 0.0) {
-                            float3 normSunDir = normalize(_SunDirection);
-                            float3 toPoint = normalize(worldPos - _Center);
-
-                            float3 ambience = GetAmbience(toPoint, normSunDir);
-                            ambientColour += ambience * stepSize * density;
-
                             float lightTransmittance = MarchLight(worldPos);
 
-                            float sunDot = dot(toPoint, normSunDir);
+                            float3 toPoint = normalize(worldPos - _Center);
+                            float sunDot = dot(toPoint, normalize(_SunDirection));
 
                             float shadow = saturate(-sunDot);
                             shadow = pow(shadow, _PlanetShadowSharpness);
@@ -410,16 +378,15 @@
                         }
                     }
 
-                    // Step forward (jitter prevents banding caused by Ambient Light, remove is no longer necessary)
-                    float jitter = frac(sin(dot(i.screenPos.xy, float2(12.9898,78.233))) * 43758.5453);
-                    t += stepSize + jitter * 0.2;
+                    // Step forward
+                    t += stepSize;
                 }
 
                 float3 col = _SunColor.rgb * lightEnergy;
                 float alpha = 1.0 - transmittance;
 
-                float3 ambience = ambientColour * _AmbientStrength * (1.0 - transmittance);
-                col = lerp(col, ambience, _AmbientMixFactor);
+                float3 ambient = _AmbientColor.rgb * (1.0 - transmittance);
+                col += ambient;
 
                 // Prevent oversaturation
                 col = clamp(col, 0, 1);
