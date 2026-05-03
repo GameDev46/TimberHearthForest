@@ -34,19 +34,20 @@ Material:
     m_Floats:
     - _AmbientFalloff: 0.1
     - _AmbientMixFactor: 0.2
-    - _AmbientStrength: 0.03
+    - _AmbientStrength: 0.05
     - _CloudScale: 1.36
     - _DarknessThreshold: 0.2
     - _Density: 1
     - _DensityMultiplier: 1.16
     - _DensityThreshold: 0.76
-    - _ErosionStrength: -0.58
+    - _ErosionStrength: 0.11
     - _ForwardScatteringBias: 0.2
     - _InnerRadius: 49.31
     - _LightAbsorptionThroughCloud: 0.8
     - _LightAbsorptionTowardsSun: 0.2
     - _MaxSteps: 64
     - _MinStepSize: 0.1
+    - _MoonRadius: 0
     - _NumSteps: 80
     - _NumSunSteps: 16
     - _OuterRadius: 80
@@ -60,6 +61,7 @@ Material:
     - _AmbientColor: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 1}
     - _Center: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _MoonPosition: {r: 0, g: 0, b: 0, a: 0}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _SunColor: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
     - _SunDirection: {r: 0, g: 0, b: 1, a: 0}

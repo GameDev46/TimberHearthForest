@@ -43,7 +43,7 @@
     SubShader
     {
         Tags { "Queue"="Transparent" "RenderType"="Transparent" }
-        Blend SrcAlpha OneMinusSrcAlpha
+        Blend One OneMinusSrcAlpha // SrcAlpha has dark edges
         ZWrite Off
         ZTest Always
         Cull Front
@@ -226,7 +226,7 @@
                 float height = distance(worldPos, _Center);
                 float h = (height - _InnerRadius) / (_OuterRadius - _InnerRadius);
 
-                n *= smoothstep(0.0, 0.2, h) * smoothstep(1.0, 0.8, h);
+                n *= smoothstep(0.0, 0.5, h) * smoothstep(1.0, 0.5, h);
 
                 return n;
             }
