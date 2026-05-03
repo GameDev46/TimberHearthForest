@@ -20,7 +20,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _AmbientTexture:
-        m_Texture: {fileID: 2800000, guid: c59eddefff9638042af7a6fc46c32746, type: 3}
+        m_Texture: {fileID: 8900000, guid: 6a712a6e091e4c04c89098c12fc7655c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _CloudNoiseTex:
@@ -32,16 +32,16 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _AmbientMixFactor: 0.2
-    - _AmbientStrength: 0.2
+    - _AmbientMixFactor: 0.5
+    - _AmbientStrength: 0.1
     - _CloudScale: 0.62
-    - _DarknessThreshold: 0.2
+    - _DarknessThreshold: 0
     - _Density: 1
     - _DensityMultiplier: 1.16
     - _DensityThreshold: 0.76
-    - _ErosionStrength: 0.6
+    - _ErosionStrength: -0.92
     - _ForwardScatteringBias: 0.2
-    - _InnerRadius: 10
+    - _InnerRadius: 60
     - _LightAbsorptionThroughCloud: 0.8
     - _LightAbsorptionTowardsSun: 0.4
     - _MaxSteps: 64
@@ -49,9 +49,10 @@ Material:
     - _NumSteps: 80
     - _NumSunSteps: 16
     - _OuterRadius: 80
-    - _PhaseG: 0.5
+    - _PhaseG: 0.15
     - _PhaseIntensity: 6
-    - _PlanetShadowSharpness: 1
+    - _PlanetRadius: 50
+    - _PlanetShadowSharpness: 0.1
     - _PlanetShadowStrength: 0
     - _StepSize: 0.5
     m_Colors:
