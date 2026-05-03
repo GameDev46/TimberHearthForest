@@ -238,7 +238,9 @@ namespace TimberHearthForest
 
             mat.SetVector("_SunDirection", new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
             mat.SetColor("_SunColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
-            mat.SetColor("_AmbientColor", new Color(0.2f, 0.2f, 0.2f, 1.0f));
+
+            mat.SetFloat("_AmbientStrength", 0.0f);
+            mat.SetFloat("_AmbientMixFactor", 0.0f);
 
             mat.SetFloat("_PlanetShadowStrength", 1.0f);
             mat.SetFloat("_PlanetShadowSharpness", 1.0f);
