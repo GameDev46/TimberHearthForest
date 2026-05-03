@@ -221,7 +221,7 @@ namespace TimberHearthForest
             mat.SetFloat("_OuterRadius", cloudOuterRadius);
             mat.SetFloat("_InnerRadius", cloudInnerRadius);
             mat.SetFloat("_PlanetRadius", 254); // th radius
-            // mat.SetFloat("_MoonRadius", 80);
+            mat.SetFloat("_MoonRadius", 80);
 
             mat.SetInt("_NumSteps", 35);
             mat.SetInt("_NumSunSteps", 12);

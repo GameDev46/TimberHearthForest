@@ -36,6 +36,9 @@
 
         _Offset ("Offset", Vector) = (0,0,0,0)
         _Center ("Center", Vector) = (0,0,0,0)
+        
+        _MoonPosition ("Moon Position", Vector) = (0,0,0,0)
+        _MoonRadius ("Moon Radius", Float) = 0
     }
     SubShader
     {
@@ -102,6 +105,9 @@
 
             float3 _Offset;
             float3 _Center;
+            
+            float3 _MoonPosition;
+            float _MoonRadius;
 
             struct Ray {
                 float3 origin;
@@ -283,6 +289,8 @@
                 if (!hit.didHit) return 1.0;
                 HitInfo planetHit = RaySphere(sunRay, _Center, _PlanetRadius);
                 if (planetHit.didHit) return 0.0;
+                HitInfo moonHit = RaySphere(sunRay, _MoonPosition, _MoonRadius);
+                if (moonHit.didHit) return 0.0;
 
                 // Calulate the sampling step size
                 float stepSize = hit.exitDist / _NumSunSteps;

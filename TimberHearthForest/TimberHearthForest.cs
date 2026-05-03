@@ -794,7 +794,7 @@ namespace TimberHearthForest
             Transform sunTransform = Locator.GetSunTransform();
             
             var sunLight = Locator.GetSunController()._sunLight._sunLight;
-            // var moonPos = Locator.GetAstroObject(AstroObject.Name.TimberMoon).transform.position;
+            var moonPos = Locator.GetAstroObject(AstroObject.Name.TimberMoon).transform.position;
             var thAmbient = Locator.GetAstroObject(AstroObject.Name.TimberHearth).transform.Find("AmbientLight_TH").GetComponent<Light>().intensity;
 
             for (int i = 0; i < volumetricCloudObjects.Count; i++)
@@ -815,11 +815,11 @@ namespace TimberHearthForest
                     {
                         mat.SetVector("_Center", CloudPosition);
                         mat.SetVector("_SunDirection", sunDirection);
-                        // mat.SetVector("_MoonPosition", moonPos);
+                        mat.SetVector("_MoonPosition", moonPos);
 
                         mat.SetVector("_SunColor", sunLight.color * sunLight.intensity);
-                        mat.SetFloat("_AmbientStrength", thAmbient / 20);
-                        // mat.SetVector("_MoonPosition", moonPos);
+                        mat.SetFloat("_AmbientStrength", thAmbient / 50);
+                        mat.SetVector("_MoonPosition", moonPos);
                     }
                 }
                 catch
