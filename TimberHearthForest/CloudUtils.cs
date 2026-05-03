@@ -214,12 +214,14 @@ namespace TimberHearthForest
                 return;
             }
 
-            Material mat = UnityEngine.Material.Instantiate(volumetricCloudMaterial);
+            Material mat = volumetricCloudMaterial;
 
             mat.SetFloat("_ErosionStrength", 0.3f);
 
             mat.SetFloat("_OuterRadius", cloudOuterRadius);
             mat.SetFloat("_InnerRadius", cloudInnerRadius);
+            mat.SetFloat("_PlanetRadius", 254); // th radius
+            // mat.SetFloat("_MoonRadius", 80);
 
             mat.SetInt("_NumSteps", 35);
             mat.SetInt("_NumSunSteps", 12);
@@ -231,7 +233,7 @@ namespace TimberHearthForest
 
             mat.SetFloat("_LightAbsorptionThroughCloud", 0.8f);
             mat.SetFloat("_LightAbsorptionTowardsSun", 0.4f);
-            mat.SetFloat("_DarknessThreshold", 0.2f);
+            // mat.SetFloat("_DarknessThreshold", 0.2f);
             mat.SetFloat("_PhaseG", 0.5f);
             mat.SetFloat("_PhaseIntensity", 4.0f);
             mat.SetFloat("_ForwardScatteringBias", 0.2f);
@@ -239,14 +241,16 @@ namespace TimberHearthForest
             mat.SetVector("_SunDirection", new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
             mat.SetColor("_SunColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
 
-            mat.SetFloat("_AmbientStrength", 0.0f);
-            mat.SetFloat("_AmbientMixFactor", 0.0f);
+            // ambient texture set in bundle
+            mat.SetFloat("_AmbientStrength", 0.2f);
+            // mat.SetFloat("_AmbientMixFactor", 0.0f);
 
-            mat.SetFloat("_PlanetShadowStrength", 1.0f);
-            mat.SetFloat("_PlanetShadowSharpness", 1.0f);
+            // mat.SetFloat("_PlanetShadowStrength", 1.0f);
+            // mat.SetFloat("_PlanetShadowSharpness", 1.0f);
 
             mat.SetVector("_Offset", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
             mat.SetVector("_Center", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+            
 
             // Create the cloud sphere
             GameObject cloudSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
