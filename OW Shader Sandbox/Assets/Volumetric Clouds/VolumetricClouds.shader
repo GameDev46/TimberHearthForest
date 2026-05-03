@@ -424,9 +424,9 @@
                         }
                     }
 
-                    // Step forward (jitter prevents banding caused by Ambient Light, remove is no longer necessary)
+                    // Step forward (jitter prevents banding)
                     float jitter = frac(sin(dot(i.screenPos.xy, float2(12.9898,78.233))) * 43758.5453);
-                    t += stepSize + jitter * 0.2;
+                    t += stepSize + stepSize * jitter * 0.5;
                 }
 
                 float3 col = _SunColor.rgb * lightEnergy;
