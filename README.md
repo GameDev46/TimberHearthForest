@@ -10,6 +10,11 @@
 
 This mod covers the barren surface of Timber Hearth with trees, grass and fireflies as well as adding clouds which can be toggled to volumetric or flat (volumetric is a bit more computationally intensive).
 
+## Credits
+
+- [JohnCorby](https://github.com/JohnCorby) - Volumetric cloud ambient lighting and planet and moon shadows implementation
+- [GameDev46](https://github.com/GameDev46) - Timber Hearth props and base volumetric cloud implementation
+
 ## Installation
 
 For the easiest method of installation, use the [Outer Wilds Mod Manager](https://outerwildsmods.com/mod-manager/)

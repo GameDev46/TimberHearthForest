@@ -218,6 +218,7 @@ namespace TimberHearthForest
             Material mat = volumetricCloudMaterial;
 
             mat.SetFloat("_ErosionStrength", 0.3f);
+            mat.SetFloat("_BlueNoiseStrength", 0.3f); // Dithering power
 
             mat.SetFloat("_OuterRadius", cloudOuterRadius);
             mat.SetFloat("_InnerRadius", cloudInnerRadius);

@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class Worley3DGenerator : MonoBehaviour
 {
-    struct WorleyResult
+    struct WorleyData
     {
-        public float f1;
-        public float f2;
+        public float dist;
+        public float secondDist;
     }
 
     public static Texture3D Generate(int size, int seed)
@@ -20,9 +20,9 @@ public class Worley3DGenerator : MonoBehaviour
         System.Random rng = new System.Random(seed);
 
         // Precompute feature points for each layer
-        var lowPoints = GenerateFeaturePoints(lowCells, rng);
-        var midPoints = GenerateFeaturePoints(midCells, rng);
-        var highPoints = GenerateFeaturePoints(highCells, rng);
+        var bigCloudPoints = GenerateFeaturePoints(lowCells, rng);
+        var mediumCloudPoints = GenerateFeaturePoints(midCells, rng);
+        var smallCloudPoints = GenerateFeaturePoints(highCells, rng);
 
         Color[] data = new Color[size * size * size];
 
@@ -35,29 +35,29 @@ public class Worley3DGenerator : MonoBehaviour
                     Vector3 p = new Vector3(x, y, z) / size;
 
                     // Scale positions per layer
-                    var low = SampleWorley(p * lowCells, lowCells, lowPoints);
-                    var mid = SampleWorley(p * midCells, midCells, midPoints);
-                    var high = SampleWorley(p * highCells, highCells, highPoints);
+                    var large = SampleWorley(p, lowCells, bigCloudPoints);
+                    var medium = SampleWorley(p, midCells, mediumCloudPoints);
+                    var small = SampleWorley(p, highCells, smallCloudPoints);
 
                     // Normalize distances
-                    float f1_low = low.f1;
-                    float f1_mid = mid.f1;
-                    float f1_high = high.f1;
+                    float largeDist = large.dist;
+                    float mediumDist = medium.dist;
+                    float smallDist = small.dist;
 
-                    float f2_low = low.f2;
+                    float largeSecondDist = large.secondDist;
 
                     // --- Build channels ---
 
-                    // Base shape (big clouds)
-                    float baseShape = 1.0f - (f1_low * 0.7f + f1_mid * 0.3f);
+                    // Base shape
+                    float baseShape = 1.0f - (largeDist * 0.7f + mediumDist * 0.3f);
 
-                    // Edge mask (great for erosion)
-                    float edge = Mathf.Clamp01(f2_low - f1_low);
+                    // Edge mask
+                    float edge = Mathf.Clamp01(largeSecondDist - largeDist);
 
                     // High-frequency detail
-                    float detail = 1.0f - f1_high;
+                    float detail = 1.0f - smallDist;
 
-                    // Optional warp (cheap random for now)
+                    // Optional warp
                     float warp = (float)rng.NextDouble();
 
                     data[index] = new Color(baseShape, edge, detail, warp);
@@ -73,7 +73,7 @@ public class Worley3DGenerator : MonoBehaviour
     }
 
     // Generate feature points
-    static Vector3[,,] GenerateFeaturePoints(int cells, System.Random rng)
+    private static Vector3[,,] GenerateFeaturePoints(int cells, System.Random rng)
     {
         Vector3[,,] points = new Vector3[cells, cells, cells];
 
@@ -92,11 +92,11 @@ public class Worley3DGenerator : MonoBehaviour
     }
 
     // Sample Worley with tiling
-    static WorleyResult SampleWorley(Vector3 p, int cells, Vector3[,,] points)
+    private static WorleyData SampleWorley(Vector3 p, int cells, Vector3[,,] points)
     {
-        int cellX = Mathf.FloorToInt(p.x);
-        int cellY = Mathf.FloorToInt(p.y);
-        int cellZ = Mathf.FloorToInt(p.z);
+        int cellX = Mathf.FloorToInt(p.x * cells);
+        int cellY = Mathf.FloorToInt(p.y * cells);
+        int cellZ = Mathf.FloorToInt(p.z * cells);
 
         float minDist = float.MaxValue;
         float secondMinDist = float.MaxValue;
@@ -112,14 +112,14 @@ public class Worley3DGenerator : MonoBehaviour
                     Vector3 feature = points[nx, ny, nz];
                     Vector3 featurePos = new Vector3(nx, ny, nz) + feature;
 
-                    Vector3 diff = p - featurePos;
+                    Vector3 diff = p * cells - featurePos;
 
                     // Tile wrapping
                     diff.x -= Mathf.Round(diff.x / cells) * cells;
                     diff.y -= Mathf.Round(diff.y / cells) * cells;
                     diff.z -= Mathf.Round(diff.z / cells) * cells;
 
-                    float dist = diff.sqrMagnitude; // faster than magnitude
+                    float dist = diff.sqrMagnitude;
 
                     if (dist < minDist)
                     {
@@ -136,12 +136,13 @@ public class Worley3DGenerator : MonoBehaviour
         minDist = Mathf.Sqrt(minDist);
         secondMinDist = Mathf.Sqrt(secondMinDist);
 
-        // Normalize (important!)
+        // Normalize
         float maxDist = Mathf.Sqrt(3); // max possible in cell
-        return new WorleyResult
+
+        return new WorleyData
         {
-            f1 = minDist / maxDist,
-            f2 = secondMinDist / maxDist
+            dist = minDist / maxDist,
+            secondDist = secondMinDist / maxDist
         };
     }
 }

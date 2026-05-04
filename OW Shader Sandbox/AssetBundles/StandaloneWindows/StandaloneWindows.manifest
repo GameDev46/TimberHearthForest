@@ -1,0 +1,13 @@
+ManifestFileVersion: 0
+CRC: 2083391242
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: solarpanels
+      Dependencies: {}
+    Info_1:
+      Name: cloudbundle
+      Dependencies: {}
+    Info_2:
+      Name: volumetricclouds
+      Dependencies: {}

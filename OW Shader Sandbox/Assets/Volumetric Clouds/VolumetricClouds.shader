@@ -3,7 +3,10 @@
     Properties
     {
         _CloudNoiseTex ("Cloud Noise Texture", 3D) = "white" {}
+        _BlueNoiseTex ("Blue Noise Texture", 2D) = "white" {}
+
         _ErosionStrength ("Erosion Strength", Float) = 0.5
+        _BlueNoiseStrength ("Blue Noise Strength", Float) = 0.3
 
         _OuterRadius ("Outer Radius", Float) = 80
         _InnerRadius ("Inner Radius", Float) = 10
@@ -72,7 +75,9 @@
             UNITY_DECLARE_DEPTH_TEXTURE(_CameraDepthTexture);
 
             UNITY_DECLARE_TEX3D(_CloudNoiseTex);
+            sampler2D _BlueNoiseTex;
             float _ErosionStrength;
+            float _BlueNoiseStrength;
 
             float _OuterRadius;
             float _InnerRadius;
@@ -347,6 +352,15 @@
                 return (1.0 - g2) / (4.0 * UNITY_PI * pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5));
             }
 
+            float SampleBlueNoise(float2 screenUV)
+            {
+                // Blue noise implementation from https://blog.maximeheckel.com/posts/real-time-cloudscapes-with-volumetric-raymarching/
+                // Blue noise texture from https://github.com/Calinou/free-blue-noise-textures/blob/master/128_128/HDR_LA_0.png
+
+                float2 noiseUV = floor(screenUV * _ScreenParams.xy) / 128.0;
+                return tex2Dlod(_BlueNoiseTex, float4(noiseUV, 0, 0)).r * 2.0 - 1.0;
+            }
+
             fixed4 frag (v2f i) : SV_Target
             {
                 // Calculate the ray from the camera
@@ -394,6 +408,9 @@
                 float stepSize = (outerHit.exitDist - outerHit.entryDist) / _NumSteps;
                 stepSize = max(_MinStepSize, stepSize);
 
+                float2 screenUV = i.screenPos.xy / i.screenPos.w;
+                ray.origin += stepSize * SampleBlueNoise(screenUV) * _BlueNoiseStrength;
+
                 for (int step = 0; step < _NumSteps; step++)
                 {
                     // Break if we go past the maximum distance
@@ -402,10 +419,10 @@
                     // If we are inside the inner sphere then the density is 0 so skip
                     bool insideInner = innerHit.didHit && (t > innerHit.entryDist && t < innerHit.exitDist);
 
-                    if (!insideInner) {
-                        float3 worldPos = ray.origin + ray.dir * t;
-                        float density = GetDensity(worldPos);
+                    float3 worldPos = ray.origin + ray.dir * t;
+                    float density = GetDensity(worldPos);
 
+                    if (!insideInner) {
                         if (density > 0.0) {
                             float3 normSunDir = normalize(_SunDirection);
                             float3 toPoint = normalize(worldPos - _Center);
@@ -433,8 +450,8 @@
                     }
 
                     // Step forward (jitter prevents banding)
-                    float jitter = frac(sin(dot(i.screenPos.xy, float2(12.9898,78.233))) * 43758.5453);
-                    t += stepSize + stepSize * jitter * 0.5;
+                    float jitter = frac(sin(dot(i.screenPos.xy + t * 10.0, float2(12.9898,78.233))) * 43758.5453);
+                    t += stepSize + stepSize * jitter * 0.0;
                 }
 
                 float3 col = _SunColor.rgb * lightEnergy;
