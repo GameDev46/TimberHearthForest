@@ -409,7 +409,10 @@
                 stepSize = max(_MinStepSize, stepSize);
 
                 float2 screenUV = i.screenPos.xy / i.screenPos.w;
-                ray.origin += stepSize * SampleBlueNoise(screenUV) * _BlueNoiseStrength;
+                float blueNoise = SampleBlueNoise(screenUV);
+                float blueNoise2 = SampleBlueNoise(screenUV * 2.0);
+
+                ray.origin += stepSize * blueNoise * _BlueNoiseStrength;
 
                 for (int step = 0; step < _NumSteps; step++)
                 {
@@ -419,14 +422,18 @@
                     // If we are inside the inner sphere then the density is 0 so skip
                     bool insideInner = innerHit.didHit && (t > innerHit.entryDist && t < innerHit.exitDist);
 
-                    float3 worldPos = ray.origin + ray.dir * t;
-                    float density = GetDensity(worldPos);
-
                     if (!insideInner) {
+                        float3 worldPos = ray.origin + ray.dir * t;
+                        float density = GetDensity(worldPos);
+
                         if (density > 0.0) {
+
+                            float decorrelatedNoise = frac(blueNoise + 0.37);
+                            float jitterFactor = decorrelatedNoise * _BlueNoiseStrength + 1.0;
+
                             float3 normSunDir = normalize(_SunDirection);
-                            float3 toPoint = normalize(worldPos - _Center);
-                            float distanceToCenter = length(worldPos - _Center);
+                            float3 toPoint = normalize(worldPos * jitterFactor - _Center);
+                            float distanceToCenter = length(worldPos * jitterFactor - _Center);
                             
                             float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
                             ambientColour += ambience * stepSize * density;
@@ -450,8 +457,8 @@
                     }
 
                     // Step forward (jitter prevents banding)
-                    float jitter = frac(sin(dot(i.screenPos.xy + t * 10.0, float2(12.9898,78.233))) * 43758.5453);
-                    t += stepSize + stepSize * jitter * 0.0;
+                    float jitter = frac(sin(dot(blueNoise * 10.0, float2(12.9898,78.233))) * 43758.5453);
+                    t += stepSize + (stepSize * frac(blueNoise2 + 0.675) * 0.2);
                 }
 
                 float3 col = _SunColor.rgb * lightEnergy;

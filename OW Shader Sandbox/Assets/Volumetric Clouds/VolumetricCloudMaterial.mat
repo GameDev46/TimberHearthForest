@@ -39,7 +39,7 @@ Material:
     - _AmbientFalloff: 0.1
     - _AmbientMixFactor: 0.2
     - _AmbientStrength: 0.03
-    - _BlueNoiseStrength: 0.25
+    - _BlueNoiseStrength: 0.3
     - _CloudScale: 1.5
     - _DarknessThreshold: 0.2
     - _Density: 1
@@ -53,7 +53,7 @@ Material:
     - _MaxSteps: 64
     - _MinStepSize: 0.5
     - _MoonRadius: 0
-    - _NumSteps: 80
+    - _NumSteps: 35
     - _NumSunSteps: 12
     - _OuterRadius: 330
     - _PhaseG: 0.5
