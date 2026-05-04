@@ -7,6 +7,7 @@
 
         _OuterRadius ("Outer Radius", Float) = 80
         _InnerRadius ("Inner Radius", Float) = 10
+        _PlanetRadius ("Planet Radius", Float) = 10
 
         _NumSteps ("Number of Steps", Int) = 80
         _NumSunSteps ("Number of Sun Steps", Int) = 16
@@ -18,7 +19,7 @@
 
         _LightAbsorptionThroughCloud ("Light Absorption Through Cloud", Float) = 0.8
         _LightAbsorptionTowardsSun ("Light Absorption Towards Sun", Float) = 0.4
-        _DarknessThreshold ("Darkness Threshold", Float) = 0.2
+//        _DarknessThreshold ("Darkness Threshold", Float) = 0.2
         _PhaseG ("Phase G", Float) = 0.5
         _PhaseIntensity ("Phase Intensity", Float) = 6
         _ForwardScatteringBias ("Forward Scattering Bias", Float) = 0.2
@@ -26,20 +27,23 @@
         _SunDirection ("Sun Direction", Vector) = (0,1,0,0)
         _SunColor ("Sun Color", Color) = (1,1,1,1)
 
-        _AmbientTexture ("Ambient Texture", 2D) = "white" {}
+        _AmbientTexture ("Ambient Texture", Cube) = "white" {}
         _AmbientStrength ("Ambient Strength", Float) = 1
-        _AmbientMixFactor ("Ambient Mix Factor", Float) = 0.5
+//        _AmbientMixFactor ("Ambient Mix Factor", Float) = 0.5
 
-        _PlanetShadowStrength ("Planet Shadow Strength", Float) = 1
-        _PlanetShadowSharpness ("Planet Shadow Sharpness", Float) = 1
+//        _PlanetShadowStrength ("Planet Shadow Strength", Float) = 1
+//        _PlanetShadowSharpness ("Planet Shadow Sharpness", Float) = 1
 
         _Offset ("Offset", Vector) = (0,0,0,0)
         _Center ("Center", Vector) = (0,0,0,0)
+        
+        _MoonPosition ("Moon Position", Vector) = (0,0,0,0)
+        _MoonRadius ("Moon Radius", Float) = 0
     }
     SubShader
     {
         Tags { "Queue"="Transparent" "RenderType"="Transparent" }
-        Blend SrcAlpha OneMinusSrcAlpha
+        Blend One OneMinusSrcAlpha // SrcAlpha has dark edges
         ZWrite Off
         ZTest Always
         Cull Front
@@ -72,6 +76,7 @@
 
             float _OuterRadius;
             float _InnerRadius;
+            float _PlanetRadius;
 
             int _NumSteps;
             int _NumSunSteps;
@@ -91,7 +96,7 @@
             float3 _SunDirection;
             float4 _SunColor;
 
-            sampler2D _AmbientTexture;
+            samplerCUBE _AmbientTexture;
             float _AmbientStrength;
             float _AmbientMixFactor;
 
@@ -100,6 +105,9 @@
 
             float3 _Offset;
             float3 _Center;
+            
+            float3 _MoonPosition;
+            float _MoonRadius;
 
             struct Ray {
                 float3 origin;
@@ -218,7 +226,7 @@
                 float height = distance(worldPos, _Center);
                 float h = (height - _InnerRadius) / (_OuterRadius - _InnerRadius);
 
-                n *= smoothstep(0.0, 0.2, h) * smoothstep(1.0, 0.8, h);
+                n *= smoothstep(0.0, 0.5, h) * smoothstep(1.0, 0.5, h);
 
                 return n;
             }
@@ -279,6 +287,10 @@
                 // Calculate the intersection point with the out sphere
                 HitInfo hit = RaySphere(sunRay, _Center, _OuterRadius);
                 if (!hit.didHit) return 1.0;
+                HitInfo planetHit = RaySphere(sunRay, _Center, _PlanetRadius);
+                if (planetHit.didHit) return 0.0;
+                HitInfo moonHit = RaySphere(sunRay, _MoonPosition, _MoonRadius);
+                if (moonHit.didHit) return 0.0;
 
                 // Calulate the sampling step size
                 float stepSize = hit.exitDist / _NumSunSteps;
@@ -296,27 +308,36 @@
 
                 // Calculate the light recieved to the point in the cloud
                 float transmitance = exp(-totalDensity * _LightAbsorptionTowardsSun);
+                return transmitance;
                 return _DarknessThreshold + transmitance * (1.0 - _DarknessThreshold);
             }
+            
+            float invLerp(float from, float to, float value){
+                return (value - from) / (to - from);
+            }
 
-            float3 GetAmbience(float3 toPointDir, float3 sunDir)
+
+            float3 GetAmbience(float distanceToCenter, float3 toPointDir, float3 sunDir)
             {
-                // In the ambience texture the x axis represents the time of day with middle as day and right as night (left is unused)
-                // The y axis represents the y height where top is facing away from light, middle is perpendicular to light and bottom is facing towards the light
-                // https://github.com/ow-mods/outer-wilds-unity-wiki/wiki/Effects-%E2%80%90-Ambient-Light#texture
+                // copied from decompiled outer wilds shader code
                 
-                float3 equatorDir = normalize(float3(toPointDir.x, 0.0, toPointDir.z));
+                float3 sampleDir;
+                
+                float percentageThruClouds = invLerp(_InnerRadius, _OuterRadius, distanceToCenter);
+                sampleDir.y = lerp(-1, 1, percentageThruClouds) * .97;
+                // sampleDir.y = 0 * .97;
+                
+                float mul = (-sampleDir.y) * sampleDir.y + 1.0;
+                mul = sqrt(mul);
 
-                // AIM: 1 at night and 0.5 at day
-                float u = dot(equatorDir, sunDir) * 0.5 + 0.5; // 0 at night and 1 at day
-                u = 1.0 - u * 0.5; // 1 at night and 0.5 at day
-
-                // AIM: 0 when facing away and 1 when at equator
-                float v = 1.0 - max(dot(toPointDir, equatorDir), 0.0); // 0 when facing away and 1 when at equator
-
-                // Sample the ambience texture
-                float4 ambience = tex2Dlod(_AmbientTexture, float4(u, v, 0, 0));
-
+                float angle = dot(toPointDir, sunDir);
+                angle *= UNITY_HALF_PI;
+                
+                float2 vec = float2(cos(angle), sin(angle));
+                sampleDir.xz = mul * vec;
+          
+                float4 ambience = texCUBElod(_AmbientTexture, float4(sampleDir, 0));
+                // ambience *= 1 - percentageThruClouds;
                 return ambience.rgb;
             }
 
@@ -388,17 +409,18 @@
                         if (density > 0.0) {
                             float3 normSunDir = normalize(_SunDirection);
                             float3 toPoint = normalize(worldPos - _Center);
-
-                            float3 ambience = GetAmbience(toPoint, normSunDir);
+                            float distanceToCenter = length(worldPos - _Center);
+                            
+                            float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
                             ambientColour += ambience * stepSize * density;
 
                             float lightTransmittance = MarchLight(worldPos);
+                            
+                            // float sunDot = dot(toPoint, normSunDir);
 
-                            float sunDot = dot(toPoint, normSunDir);
-
-                            float shadow = saturate(-sunDot);
-                            shadow = pow(shadow, _PlanetShadowSharpness);
-                            lightTransmittance *= (1.0 - shadow * _PlanetShadowStrength);
+                            // float shadow = saturate(-sunDot);
+                            // shadow = pow(shadow, _PlanetShadowSharpness);
+                            // lightTransmittance *= (1.0 - shadow * _PlanetShadowStrength);
 
                             float absorption = density * _LightAbsorptionThroughCloud * stepSize;
                             float contribution = density * transmittance * lightTransmittance * phaseVal * stepSize;
@@ -410,19 +432,20 @@
                         }
                     }
 
-                    // Step forward (jitter prevents banding caused by Ambient Light, remove is no longer necessary)
+                    // Step forward (jitter prevents banding)
                     float jitter = frac(sin(dot(i.screenPos.xy, float2(12.9898,78.233))) * 43758.5453);
-                    t += stepSize + jitter * 0.2;
+                    t += stepSize + stepSize * jitter * 0.5;
                 }
 
                 float3 col = _SunColor.rgb * lightEnergy;
                 float alpha = 1.0 - transmittance;
 
-                float3 ambience = ambientColour * _AmbientStrength * (1.0 - transmittance);
-                col = lerp(col, ambience, _AmbientMixFactor);
+                float3 ambience = ambientColour * _AmbientStrength;
+                // col = lerp(col, ambience, _AmbientMixFactor);
+                col += ambience;
 
                 // Prevent oversaturation
-                col = clamp(col, 0, 1);
+                // col = clamp(col, 0, 1);
 
                 return float4(col, alpha);
             }
