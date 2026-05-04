@@ -39,9 +39,10 @@ namespace TimberHearthForest
             try
             {
                 if (cloudMaterial == null) {
-                    string platformFolder = "";
 
-                    switch (Application.platform)
+                    string platformFolder = "Windows";
+
+                    /*switch (Application.platform)
                     {
                         case RuntimePlatform.WindowsPlayer:
                         case RuntimePlatform.WindowsEditor:
@@ -56,7 +57,7 @@ namespace TimberHearthForest
                         default:
                             modConsole.WriteLine($"Unsupported platform: {Application.platform}", MessageType.Warning);
                             return;
-                    }
+                    }*/
 
                     string bundlePath = Path.Combine(modFolderPath, "Assets", platformFolder, "cloudbundle");
                     cloudBundle = AssetBundle.LoadFromFile(bundlePath);
@@ -168,9 +169,9 @@ namespace TimberHearthForest
             {
                 if (volumetricCloudMaterial == null)
                 {
-                    string platformFolder = "";
+                    string platformFolder = "Windows";
 
-                    switch (Application.platform)
+                    /*switch (Application.platform)
                     {
                         case RuntimePlatform.WindowsPlayer:
                         case RuntimePlatform.WindowsEditor:
@@ -185,7 +186,7 @@ namespace TimberHearthForest
                         default:
                             modConsole.WriteLine($"Unsupported platform: {Application.platform}", MessageType.Warning);
                             return;
-                    }
+                    }*/
 
                     string bundlePath = Path.Combine(modFolderPath, "Assets", platformFolder, "volumetricclouds");
                     volumetricCloudBundle = AssetBundle.LoadFromFile(bundlePath);
