@@ -428,12 +428,12 @@
 
                         if (density > 0.0) {
 
-                            float decorrelatedNoise = frac(blueNoise + 0.37);
-                            float jitterFactor = decorrelatedNoise * _BlueNoiseStrength + 1.0;
+                            float jitterFactor = frac(blueNoise + t) * _BlueNoiseStrength + 1.0;
+                            float3 jitteredWorldPos = min(worldPos * jitterFactor, worldPos + stepSize * 0.1);
 
                             float3 normSunDir = normalize(_SunDirection);
-                            float3 toPoint = normalize(worldPos * jitterFactor - _Center);
-                            float distanceToCenter = length(worldPos * jitterFactor - _Center);
+                            float3 toPoint = normalize(jitteredWorldPos - _Center);
+                            float distanceToCenter = length(jitteredWorldPos - _Center);
                             
                             float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
                             ambientColour += ambience * stepSize * density;
@@ -457,8 +457,8 @@
                     }
 
                     // Step forward (jitter prevents banding)
-                    float jitter = frac(sin(dot(blueNoise * 10.0, float2(12.9898,78.233))) * 43758.5453);
-                    t += stepSize + (stepSize * frac(blueNoise2 + 0.675) * 0.2);
+                    //float jitter = frac(sin(dot(blueNoise * 10.0, float2(12.9898,78.233))) * 43758.5453);
+                    t += stepSize + (stepSize * frac(blueNoise2 + t + 0.675) * 0.2);
                 }
 
                 float3 col = _SunColor.rgb * lightEnergy;
