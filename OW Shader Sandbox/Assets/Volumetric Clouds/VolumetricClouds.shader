@@ -19,6 +19,8 @@
         _DensityMultiplier ("Density Multiplier", Float) = 1.16
         _DensityThreshold ("Density Threshold", Float) = 0.76
 
+        _WhispyFactor ("Whispy Factor", Float) = 20.0
+
         _LightAbsorptionThroughCloud ("Light Absorption Through Cloud", Float) = 0.8
         _LightAbsorptionTowardsSun ("Light Absorption Towards Sun", Float) = 0.4
 //        _DarknessThreshold ("Darkness Threshold", Float) = 0.2
@@ -88,6 +90,8 @@
             float _CloudScale;
             float _DensityMultiplier;
             float _DensityThreshold;
+
+            float _WhispyFactor;
 
             float _LightAbsorptionThroughCloud;
             float _LightAbsorptionTowardsSun;
@@ -171,7 +175,7 @@
                 return 1.0 - minDist;
             }*/
 
-            float noise(float3 p)
+            float2 Noise(float3 p)
             {
                 /*float3 i = floor(p);
                 float3 f = frac(p);
@@ -215,23 +219,35 @@
                 density -= detail * edge * _ErosionStrength;
 
                 density = saturate(density);
-                return density;
+                return float2(density, detail);
             }
 
             float GetDensity(float3 worldPos)
             {
                 // Sample noise
                 float scale = _CloudScale;
-                float n = noise((worldPos - _Center) * scale + _Offset);
-                n = smoothstep(_DensityThreshold, 1.0, n * _DensityMultiplier);
+                float2 noiseData = Noise((worldPos - _Center) * scale + _Offset);
+
+                float density = noiseData.x;
+                float detail = noiseData.y;
+
+                density = smoothstep(_DensityThreshold, 1.0, density * _DensityMultiplier);
 
                 // Fade the noise towards the edges of the inner and out sphere
                 float height = distance(worldPos, _Center);
                 float h = (height - _InnerRadius) / (_OuterRadius - _InnerRadius);
 
-                n *= smoothstep(0.0, 0.5, h) * smoothstep(1.0, 0.5, h);
+                // Add extra "whispy" detail towards the top edges of the cloud
+                height += detail * _WhispyFactor * h;
 
-                return n;
+                // Recalculate h after adding whispy detail
+                h = (height - _InnerRadius) / (_OuterRadius - _InnerRadius);
+
+                // Fade the clouds towards the edge of inner and outer boundary
+                float fadeFactor = smoothstep(0.0, 0.5, h) * smoothstep(1.0, 0.5, h);
+                density *= fadeFactor;
+
+                return density;
             }
 
             HitInfo RaySphere(Ray ray, fixed3 sphereCenter, float sphereRadius)

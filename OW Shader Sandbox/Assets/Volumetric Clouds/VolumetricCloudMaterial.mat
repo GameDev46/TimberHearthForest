@@ -55,7 +55,7 @@ Material:
     - _MoonRadius: 90
     - _NumSteps: 50
     - _NumSunSteps: 12
-    - _OuterRadius: 330
+    - _OuterRadius: 370
     - _PhaseG: 0.5
     - _PhaseIntensity: 4
     - _PlanetRadius: 254
@@ -63,6 +63,7 @@ Material:
     - _PlanetShadowStrength: 0
     - _StepSize: 10
     - _SunStepSize: 20
+    - _WhispyFactor: 100
     m_Colors:
     - _AmbientColor: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 1}
     - _Center: {r: 0, g: 0, b: 0, a: 0}
