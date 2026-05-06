@@ -236,7 +236,6 @@ namespace TimberHearthForest
             mat.SetFloat("_LightAbsorptionThroughCloud", 0.8f);
             mat.SetFloat("_LightAbsorptionTowardsSun", 0.4f);
             // mat.SetFloat("_DarknessThreshold", 0.2f);
-            mat.SetFloat("_PhaseG", 0.5f);
             mat.SetFloat("_PhaseIntensity", 4.0f);
             mat.SetFloat("_ForwardScatteringBias", 0.2f);
 
