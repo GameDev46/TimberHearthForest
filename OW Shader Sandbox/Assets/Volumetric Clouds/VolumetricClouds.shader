@@ -20,13 +20,15 @@
         _DensityThreshold ("Density Threshold", Float) = 0.76
 
         _WhispyFactor ("Whispy Factor", Float) = 20.0
+        _TopBottomFadeFactor ("Top/Bottom Fade Factor", Range(0,1)) = 0.5
 
         _LightAbsorptionThroughCloud ("Light Absorption Through Cloud", Float) = 0.8
         _LightAbsorptionTowardsSun ("Light Absorption Towards Sun", Float) = 0.4
 //        _DarknessThreshold ("Darkness Threshold", Float) = 0.2
-        _PhaseG ("Phase G", Float) = 0.5
+        _PhaseGF ("Phase G Forward", Range(0,1)) = 0.5
+        _PhaseGB ("Phase G Backward", Range(-1,0)) = -0.2
         _PhaseIntensity ("Phase Intensity", Float) = 6
-        _ForwardScatteringBias ("Forward Scattering Bias", Float) = 0.2
+        _ForwardScatteringBias ("Forward Scattering Bias", Range(0,1)) = 0.2
 
         _SunDirection ("Sun Direction", Vector) = (0,1,0,0)
         _SunColor ("Sun Color", Color) = (1,1,1,1)
@@ -92,11 +94,12 @@
             float _DensityThreshold;
 
             float _WhispyFactor;
+            float _TopBottomFadeFactor;
 
             float _LightAbsorptionThroughCloud;
             float _LightAbsorptionTowardsSun;
-            float _DarknessThreshold;
-            float _PhaseG;
+            // float _DarknessThreshold;
+            float _PhaseGF, _PhaseGB;
             float _PhaseIntensity;
             float _ForwardScatteringBias;
 
@@ -105,7 +108,7 @@
 
             samplerCUBE _AmbientTexture;
             float _AmbientStrength;
-            float _AmbientMixFactor;
+            // float _AmbientMixFactor;
 
             float _PlanetShadowStrength;
             float _PlanetShadowSharpness;
@@ -244,7 +247,7 @@
                 h = (height - _InnerRadius) / (_OuterRadius - _InnerRadius);
 
                 // Fade the clouds towards the edge of inner and outer boundary
-                float fadeFactor = smoothstep(0.0, 0.5, h) * smoothstep(1.0, 0.5, h);
+                float fadeFactor = smoothstep(0.0, _TopBottomFadeFactor, h) * smoothstep(1.0, 1-_TopBottomFadeFactor, h);
                 density *= fadeFactor;
 
                 return density;
@@ -327,7 +330,7 @@
                 // Calculate the light recieved to the point in the cloud
                 float transmitance = exp(-totalDensity * _LightAbsorptionTowardsSun);
                 return transmitance;
-                return _DarknessThreshold + transmitance * (1.0 - _DarknessThreshold);
+                // return _DarknessThreshold + transmitance * (1.0 - _DarknessThreshold);
             }
             
             float invLerp(float from, float to, float value){
@@ -406,8 +409,8 @@
                 float3 L = normalize(_SunDirection);
                 float cosTheta = dot(ray.dir, L);
 
-                float forward = PhaseHG(cosTheta, _PhaseG);
-                float backward = PhaseHG(cosTheta, -0.2);
+                float forward = PhaseHG(cosTheta, _PhaseGF);
+                float backward = PhaseHG(cosTheta, _PhaseGB);
 
                 float phaseVal = lerp(backward, forward, _ForwardScatteringBias);
                 phaseVal *= _PhaseIntensity;

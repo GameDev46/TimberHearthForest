@@ -56,13 +56,15 @@ Material:
     - _NumSteps: 50
     - _NumSunSteps: 12
     - _OuterRadius: 370
-    - _PhaseG: 0.5
+    - _PhaseGB: -0.2
+    - _PhaseGF: 0.5
     - _PhaseIntensity: 4
     - _PlanetRadius: 254
     - _PlanetShadowSharpness: 1
     - _PlanetShadowStrength: 0
     - _StepSize: 10
     - _SunStepSize: 20
+    - _TopBottomFadeFactor: 0.5
     - _WhispyFactor: 100
     m_Colors:
     - _AmbientColor: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 1}
