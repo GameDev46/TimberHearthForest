@@ -39,7 +39,7 @@ Material:
     - _AmbientFalloff: 0.1
     - _AmbientMixFactor: 0.2
     - _AmbientStrength: 0.03
-    - _BlueNoiseStrength: 0.2
+    - _BlueNoiseStrength: 1
     - _CloudScale: 1.5
     - _DarknessThreshold: 0.2
     - _Density: 1
@@ -52,7 +52,7 @@ Material:
     - _LightAbsorptionTowardsSun: 0.4
     - _MaxSteps: 64
     - _MinStepSize: 0.5
-    - _MoonRadius: 0
+    - _MoonRadius: 90
     - _NumSteps: 50
     - _NumSunSteps: 12
     - _OuterRadius: 330
@@ -61,13 +61,13 @@ Material:
     - _PlanetRadius: 254
     - _PlanetShadowSharpness: 1
     - _PlanetShadowStrength: 0
-    - _StepSize: 5
-    - _SunStepSize: 15
+    - _StepSize: 10
+    - _SunStepSize: 20
     m_Colors:
     - _AmbientColor: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 1}
     - _Center: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
-    - _MoonPosition: {r: 0, g: 0, b: 0, a: 0}
+    - _MoonPosition: {r: 0, g: -156.7, b: 300, a: 0}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _SunColor: {r: 1, g: 0.95686275, b: 0.8392157, a: 1}
     - _SunDirection: {r: 0, g: 0, b: 1, a: 0}

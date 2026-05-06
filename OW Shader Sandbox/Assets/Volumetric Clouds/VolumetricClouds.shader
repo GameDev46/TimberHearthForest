@@ -6,7 +6,7 @@
         _BlueNoiseTex ("Blue Noise Texture", 2D) = "white" {}
 
         _ErosionStrength ("Erosion Strength", Float) = 0.5
-        _BlueNoiseStrength ("Blue Noise Strength", Float) = 0.3
+        _BlueNoiseStrength ("Blue Noise Strength", Range(0, 1)) = 0.3
 
         _OuterRadius ("Outer Radius", Float) = 80
         _InnerRadius ("Inner Radius", Float) = 10
@@ -349,13 +349,14 @@
                 return (1.0 - g2) / (4.0 * UNITY_PI * pow(1.0 + g2 - 2.0 * g * cosTheta, 1.5));
             }
 
+            // 0..1 blue noise
             float SampleBlueNoise(float2 screenUV)
             {
                 // Blue noise implementation from https://blog.maximeheckel.com/posts/real-time-cloudscapes-with-volumetric-raymarching/
                 // Blue noise texture from https://github.com/Calinou/free-blue-noise-textures/blob/master/128_128/HDR_LA_0.png
 
                 float2 noiseUV = floor(screenUV * _ScreenParams.xy) / 128.0;
-                return tex2Dlod(_BlueNoiseTex, float4(noiseUV, 0, 0)).r * 2.0 - 1.0;
+                return tex2Dlod(_BlueNoiseTex, float4(noiseUV, 0, 0)).r;
             }
 
             fixed4 frag (v2f i) : SV_Target
@@ -395,6 +396,10 @@
                 float phaseVal = lerp(backward, forward, _ForwardScatteringBias);
                 phaseVal *= _PhaseIntensity;
 
+                // jitter the starting point
+                float blueNoise = SampleBlueNoise(uv) * _BlueNoiseStrength;
+                outerHit.entryDist += blueNoise * _StepSize;
+                
                 // Raymarch through the clouds
                 float t = outerHit.entryDist;
                 float transmittance = 1.0;
@@ -403,12 +408,6 @@
                 float3 ambientColour = float3(0.0, 0.0, 0.0);
 
                 int numSteps = (outerHit.exitDist - outerHit.entryDist) / _StepSize;
-
-                // float2 screenUV = i.screenPos.xy / i.screenPos.w;
-                // float blueNoise = SampleBlueNoise(screenUV);
-                // float blueNoise2 = SampleBlueNoise(screenUV * 2.0);
-
-                // ray.origin += _StepSize * blueNoise * _BlueNoiseStrength;
 
                 for (int step = 0; step < numSteps; step++)
                 {
