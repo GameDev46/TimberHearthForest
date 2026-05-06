@@ -61,7 +61,8 @@ Material:
     - _PlanetRadius: 254
     - _PlanetShadowSharpness: 1
     - _PlanetShadowStrength: 0
-    - _StepSize: 0.5
+    - _StepSize: 5
+    - _SunStepSize: 15
     m_Colors:
     - _AmbientColor: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 1}
     - _Center: {r: 0, g: 0, b: 0, a: 0}

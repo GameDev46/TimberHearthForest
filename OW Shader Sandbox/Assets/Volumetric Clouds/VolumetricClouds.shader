@@ -12,9 +12,8 @@
         _InnerRadius ("Inner Radius", Float) = 10
         _PlanetRadius ("Planet Radius", Float) = 10
 
-        _NumSteps ("Number of Steps", Int) = 80
-        _NumSunSteps ("Number of Sun Steps", Int) = 16
-        _MinStepSize ("Minimum Step Size", Float) = 0.1
+        _StepSize ("Step Size", Range(1, 100)) = 10
+        _SunStepSize ("Sun Step Size", Range(1, 100)) = 10
 
         _CloudScale ("Cloud Scale", Float) = 0.62
         _DensityMultiplier ("Density Multiplier", Float) = 1.16
@@ -83,9 +82,8 @@
             float _InnerRadius;
             float _PlanetRadius;
 
-            int _NumSteps;
-            int _NumSunSteps;
-            float _MinStepSize;
+            float _StepSize;
+            float _SunStepSize;
 
             float _CloudScale;
             float _DensityMultiplier;
@@ -298,17 +296,16 @@
                 if (moonHit.didHit) return 0.0;
 
                 // Calulate the sampling step size
-                float stepSize = hit.exitDist / _NumSunSteps;
-                stepSize = max(_MinStepSize, stepSize);
+                int numSteps = (hit.exitDist - hit.entryDist) / _SunStepSize;
 
                 float3 position = origin;
                 float totalDensity = 0.0;
 
                 // Step through the cloud towards the sun to calculate the total cloud density
-                for (int i = 0; i < _NumSunSteps; i++)
+                for (int i = 0; i < numSteps; i++)
                 {
-                    position += sunRay.dir * stepSize;
-                    totalDensity += max(0.0, GetDensity(position) * stepSize);
+                    position += sunRay.dir * _SunStepSize;
+                    totalDensity += max(0.0, GetDensity(position) * _SunStepSize);
                 }
 
                 // Calculate the light recieved to the point in the cloud
@@ -386,7 +383,7 @@
                 float rayDepth = linearDepth * viewLength;
 
                 // Calculate the maximum ray distance
-                float maxDistance = min(rayDepth, outerHit.exitDist);
+                outerHit.exitDist = min(rayDepth, outerHit.exitDist);
 
                 // Calculate the phase value
                 float3 L = normalize(_SunDirection);
@@ -405,20 +402,16 @@
 
                 float3 ambientColour = float3(0.0, 0.0, 0.0);
 
-                float stepSize = (outerHit.exitDist - outerHit.entryDist) / _NumSteps;
-                stepSize = max(_MinStepSize, stepSize);
+                int numSteps = (outerHit.exitDist - outerHit.entryDist) / _StepSize;
 
-                float2 screenUV = i.screenPos.xy / i.screenPos.w;
-                float blueNoise = SampleBlueNoise(screenUV);
-                float blueNoise2 = SampleBlueNoise(screenUV * 2.0);
+                // float2 screenUV = i.screenPos.xy / i.screenPos.w;
+                // float blueNoise = SampleBlueNoise(screenUV);
+                // float blueNoise2 = SampleBlueNoise(screenUV * 2.0);
 
-                ray.origin += stepSize * blueNoise * _BlueNoiseStrength;
+                // ray.origin += _StepSize * blueNoise * _BlueNoiseStrength;
 
-                for (int step = 0; step < _NumSteps; step++)
+                for (int step = 0; step < numSteps; step++)
                 {
-                    // Break if we go past the maximum distance
-                    if (t > maxDistance) break;
-
                     // If we are inside the inner sphere then the density is 0 so skip
                     bool insideInner = innerHit.didHit && (t > innerHit.entryDist && t < innerHit.exitDist);
 
@@ -428,15 +421,12 @@
 
                         if (density > 0.0) {
 
-                            float jitterFactor = frac(blueNoise + t) * _BlueNoiseStrength + 1.0;
-                            float3 jitteredWorldPos = min(worldPos * jitterFactor, worldPos + stepSize * 0.1);
-
                             float3 normSunDir = normalize(_SunDirection);
-                            float3 toPoint = normalize(jitteredWorldPos - _Center);
-                            float distanceToCenter = length(jitteredWorldPos - _Center);
+                            float3 toPoint = normalize(worldPos - _Center);
+                            float distanceToCenter = length(worldPos - _Center);
                             
                             float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
-                            ambientColour += ambience * stepSize * density;
+                            ambientColour += ambience * _StepSize * density;
 
                             float lightTransmittance = MarchLight(worldPos);
                             
@@ -446,8 +436,8 @@
                             // shadow = pow(shadow, _PlanetShadowSharpness);
                             // lightTransmittance *= (1.0 - shadow * _PlanetShadowStrength);
 
-                            float absorption = density * _LightAbsorptionThroughCloud * stepSize;
-                            float contribution = density * transmittance * lightTransmittance * phaseVal * stepSize;
+                            float absorption = density * _LightAbsorptionThroughCloud * _StepSize;
+                            float contribution = density * transmittance * lightTransmittance * phaseVal * _StepSize;
 
                             lightEnergy += contribution;
                             transmittance *= exp(-absorption);
@@ -458,7 +448,7 @@
 
                     // Step forward (jitter prevents banding)
                     //float jitter = frac(sin(dot(blueNoise * 10.0, float2(12.9898,78.233))) * 43758.5453);
-                    t += stepSize + (stepSize * frac(blueNoise2 + t + 0.675) * 0.2);
+                    t += _StepSize;
                 }
 
                 float3 col = _SunColor.rgb * lightEnergy;
