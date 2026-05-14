@@ -189,7 +189,7 @@ namespace TimberHearthForest
             CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, true, ref cloudObjects);
             CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, false, ref cloudObjects);
 
-            CloudUtils.CreateVolumetricCloud(cloudHolder, 285.0f, 330.0f, ref volumetricCloudObjects);
+            CloudUtils.CreateVolumetricCloud(cloudHolder, 285.0f, 370.0f, ref volumetricCloudObjects);
 
             // Update whether volumetric clouds are enabled
             bool volumetricCloudsEnabled = ModHelper.Config.GetSettingsValue<string>("volumetricCloudsEnabled") == "Enabled";
@@ -230,15 +230,15 @@ namespace TimberHearthForest
         private void UpdateVolumetricCloudSettings(bool enabled, string quality, string size, string coverage)
         {
 
-            int raymarchSteps = 35;
-            int sunRaymarchSteps = 12;
+            float rayStepSize = 10.0f;
+            float sunRayStepSize = 20.0f;
 
             switch (quality)
             {
-                case "Ultra":   raymarchSteps = 70; sunRaymarchSteps = 20; break;
-                case "High":    raymarchSteps = 50; sunRaymarchSteps = 15; break;
-                case "Medium":  raymarchSteps = 35; sunRaymarchSteps = 12; break;
-                case "Low":     raymarchSteps = 20; sunRaymarchSteps = 12; break;
+                case "Ultra":   rayStepSize = 5.0f; sunRayStepSize = 10.0f; break;
+                case "High":    rayStepSize = 7.0f; sunRayStepSize = 12.0f; break;
+                case "Medium":  rayStepSize = 10.0f; sunRayStepSize = 20.0f; break;
+                case "Low":     rayStepSize = 20.0f; sunRayStepSize = 30.0f; break;
                 default:
                     ModHelper.Console.WriteLine($"Unknown volumetric cloud quality setting: {quality}", MessageType.Error);
                     break;
@@ -277,8 +277,9 @@ namespace TimberHearthForest
 
                 if (cloudMat != null)
                 {
-                    cloudMat.SetInt("_NumSteps", raymarchSteps);
-                    cloudMat.SetInt("_NumSunSteps", sunRaymarchSteps);
+                    cloudMat.SetFloat("_StepSize", rayStepSize);
+                    cloudMat.SetFloat("_SunStepSize", sunRayStepSize);
+
                     cloudMat.SetFloat("_CloudScale", sizeMultiplier);
                     cloudMat.SetFloat("_DensityThreshold", coverageThreshold);
                 }
