@@ -80,6 +80,7 @@
 
             UNITY_DECLARE_TEX3D(_CloudNoiseTex);
             sampler2D _BlueNoiseTex;
+
             float _ErosionStrength;
             float _BlueNoiseStrength;
 

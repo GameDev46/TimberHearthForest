@@ -36,7 +36,7 @@ namespace TimberHearthForest
 
         private List<(GameObject, float)> cloudObjects = new List<(GameObject, float)>();
 
-        private List<GameObject> volumetricCloudObjects = new List<GameObject>();
+        private List<(GameObject, GameObject)> volumetricCloudObjects = new List<(GameObject, GameObject)>();
 
         private GameObject THSatelliteObject;
 
@@ -163,7 +163,7 @@ namespace TimberHearthForest
         {
             // Clear the stored cloud renderers
             cloudObjects = new List<(GameObject, float)>();
-            volumetricCloudObjects = new List<GameObject>();
+            volumetricCloudObjects = new List<(GameObject, GameObject)>();
 
             AstroObject timberHearthAstroObject = Locator.GetAstroObject(AstroObject.Name.TimberHearth);
             GameObject cloudHolder = timberHearthAstroObject?.GetComponentInChildren<Sector>()?.transform.gameObject;
@@ -269,7 +269,7 @@ namespace TimberHearthForest
                     break;
             }
 
-            foreach (GameObject cloud in volumetricCloudObjects)
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
             {
                 cloud?.SetActive(enabled);
 
@@ -282,6 +282,14 @@ namespace TimberHearthForest
 
                     cloudMat.SetFloat("_CloudScale", sizeMultiplier);
                     cloudMat.SetFloat("_DensityThreshold", coverageThreshold);
+                }
+
+                Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+
+                if (cloudShadowMat != null)
+                {
+                    cloudShadowMat.SetFloat("_CloudScale", sizeMultiplier);
+                    cloudShadowMat.SetFloat("_DensityThreshold", coverageThreshold);
                 }
             }
         }
@@ -802,7 +810,10 @@ namespace TimberHearthForest
             {
                 try
                 {
-                    Transform cloud = volumetricCloudObjects[i].transform;
+                    (GameObject cloudGO, GameObject shadowCloudGO) = volumetricCloudObjects[i];
+
+                    Transform cloud = cloudGO.transform;
+                    Transform shadowCloud = shadowCloudGO?.transform;
 
                     // Get the cloud's material
                     Material mat = cloud.GetComponent<MeshRenderer>().material;
@@ -821,6 +832,14 @@ namespace TimberHearthForest
                         mat.SetVector("_SunColor", sunLight.color * sunLight.intensity);
                         mat.SetFloat("_AmbientStrength", thAmbient / 50);
                         mat.SetVector("_MoonPosition", moonPos);
+                    }
+
+                    // Get the cloud's shadow material (if one exists)
+                    Material shadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+
+                    if (shadowMat != null)
+                    {
+                        shadowMat.SetVector("_Center", CloudPosition);
                     }
                 }
                 catch
