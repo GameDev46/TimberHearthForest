@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityEngine.Rendering;
 
 namespace TimberHearthForest
 {
@@ -310,6 +311,79 @@ namespace TimberHearthForest
             // Store the volumetric cloud sphere gameobject
             volumetricClouds.Add((cloudSphere, cloudShadowSphere));
         }
+
+        #region command buffer shenanigans
+
+        public static void Stuff()
+        {
+            // draft code
+            var drawCmd = new CommandBuffer();
+            var compositeCmd = new CommandBuffer();
+            var shadowCmd = new CommandBuffer();
+
+            var cam = new Camera(); // TODO: will be multiple cameras
+            var light = new Light(); // TODO: the sun
+            var cloudRenderer = new Renderer(); // TODO: draws to regular screen eventually
+            var cloudShadowRenderer = new Renderer(); // TODO: draws to shadow mask
+            var compositeMaterial = new Material(""); // TODO: copies to screen with `Blend One OneMinusSrcAlpha` 
+            
+            // put some geometry in front of the camera so shadows are forced to render
+            if (cam.transform.Cast<Transform>().All(x => x.name != "shadow hack"))
+            {
+                var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                GameObject.Destroy(quad.GetComponent<Collider>());
+                quad.name = "shadow hack";
+                quad.transform.SetParent(cam.transform, false);
+                quad.transform.localPosition = Vector3.forward;
+                quad.transform.localScale = Vector3.zero;
+                Debug.Log("placed quad");
+            }
+
+            const int DOWNSAMPLE = 4;
+            var drawBuffer = Shader.PropertyToID("_DrawBuffer");
+            var shadowBuffer = Shader.PropertyToID("_ShadowBuffer");
+            // this section draws to our downsampled buffers. separate because we mess with render target and that needs to be restored after this executes
+            // idk if should be linear or srgb. mess with it
+            // matrices should already be set to camera at this point
+            // rebuild this one every frame since it uses camera width/height which might change (like in Camera.onPreRender cuz that gives you the camera)
+            drawCmd.GetTemporaryRT(drawBuffer, cam.pixelWidth / DOWNSAMPLE, cam.pixelHeight / DOWNSAMPLE, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            drawCmd.GetTemporaryRT(shadowBuffer, cam.pixelWidth / DOWNSAMPLE, cam.pixelHeight / DOWNSAMPLE, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear);
+            /*foreach cloud*/
+            drawCmd.SetRenderTarget(drawBuffer);
+            drawCmd.DrawRenderer(cloudRenderer, cloudRenderer.sharedMaterial);
+            drawCmd.SetRenderTarget(drawBuffer);
+            drawCmd.DrawRenderer(cloudRenderer, cloudRenderer.sharedMaterial);
+            
+            // !! alternatively
+            drawCmd.GetTemporaryRT(drawBuffer, cam.pixelWidth / DOWNSAMPLE, cam.pixelHeight / DOWNSAMPLE, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
+            drawCmd.GetTemporaryRT(shadowBuffer, cam.pixelWidth / DOWNSAMPLE, cam.pixelHeight / DOWNSAMPLE, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear);
+            drawCmd.SetRenderTarget([drawBuffer, shadowBuffer], drawBuffer);
+            /*foreach cloud*/
+            drawCmd.DrawRenderer(cloudRenderer, cloudRenderer.sharedMaterial);
+            /*
+             * in the shader you can return a struct:
+            struct FragmentOutput
+            {
+                float3 color : SV_Target0;
+                float shadow : SV_Target1;
+            };
+             */
+            
+            // everything else can probably just build once since its not passing in different data per frame
+            
+            // this copies to screen
+            compositeCmd.Blit(drawBuffer, BuiltinRenderTextureType.CurrentActive, compositeMaterial);
+            
+            // this copies to shadow mask
+            shadowCmd.Blit(shadowBuffer, BuiltinRenderTextureType.CurrentActive);
+            
+            cam.AddCommandBuffer(CameraEvent.AfterForwardAlpha, drawCmd);
+            // i think render target gets restored here hopefully
+            cam.AddCommandBuffer(CameraEvent.AfterForwardAlpha, compositeCmd);
+            light.AddCommandBuffer(LightEvent.AfterScreenspaceMask, shadowCmd);
+        }
+
+        #endregion
 
         private static Mesh InvertMesh(Mesh original)
         {
