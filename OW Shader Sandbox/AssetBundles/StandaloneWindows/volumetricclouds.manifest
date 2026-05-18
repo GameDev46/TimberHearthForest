@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 132919190
+CRC: 906483726
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: cd64f9f73d0f08e994f20241c53d67e4
+    Hash: f6ed14fc2b2cc976669ac1b2ee67e11e
   TypeTreeHash:
     serializedVersion: 2
     Hash: aecb4aa7ad4da8c01d56f7d33dc6356e
@@ -24,5 +24,7 @@ Assets:
 - Assets/Volumetric Clouds/VolumetricClouds.shader
 - Assets/Volumetric Clouds/Worley3D.asset
 - Assets/Volumetric Clouds/HDR_LA_0.png
+- Assets/Volumetric Clouds/VolumetricCloudsShadow.shader
 - Assets/Volumetric Clouds/VolumetricCloudMaterial.mat
+- Assets/Volumetric Clouds/VolumetricShadowMaterial.mat
 Dependencies: []

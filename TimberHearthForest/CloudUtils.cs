@@ -23,6 +23,7 @@ namespace TimberHearthForest
 
         private static AssetBundle volumetricCloudBundle;
         private static Material volumetricCloudMaterial;
+        private static Material volumetricCloudShadowMaterial;
 
         public static void SetModDirectoryPath(string dirPath)
         {
@@ -198,6 +199,7 @@ namespace TimberHearthForest
                     }
 
                     volumetricCloudMaterial = volumetricCloudBundle.LoadAsset<Material>("VolumetricCloudMaterial");
+                    volumetricCloudShadowMaterial = volumetricCloudBundle.LoadAsset<Material>("VolumetricShadowMaterial");
                 }
             }
             catch (Exception e)
@@ -206,7 +208,7 @@ namespace TimberHearthForest
             }
         }
 
-        public static void CreateVolumetricCloud(GameObject cloudHolder, float cloudInnerRadius, float cloudOuterRadius, ref List<GameObject> volumetricClouds)
+        public static void CreateVolumetricCloud(GameObject cloudHolder, float cloudInnerRadius, float cloudOuterRadius, ref List<(GameObject, GameObject)> volumetricClouds)
         {
 
             if (volumetricCloudMaterial == null)
@@ -215,19 +217,20 @@ namespace TimberHearthForest
                 return;
             }
 
+            // Setup the volumetric clouds material
             Material mat = volumetricCloudMaterial;
 
             mat.SetFloat("_ErosionStrength", 0.3f);
-            mat.SetFloat("_BlueNoiseStrength", 0.3f); // Dithering power
+            mat.SetFloat("_BlueNoiseStrength", 1.0f); // Dithering power
 
             mat.SetFloat("_OuterRadius", cloudOuterRadius);
             mat.SetFloat("_InnerRadius", cloudInnerRadius);
             mat.SetFloat("_PlanetRadius", 254); // th radius
             mat.SetFloat("_MoonRadius", 80);
 
-            mat.SetInt("_NumSteps", 35);
-            mat.SetInt("_NumSunSteps", 12);
-            mat.SetFloat("_MinStepSize", 0.5f);
+            mat.SetFloat("_StepSize", 10.0f);
+            mat.SetFloat("_SunStepSize", 20.0f);
+            mat.SetFloat("_DenseStepSize", 4.0f); // The step size in the denser dark clouds (where banding is most prevalent)
 
             mat.SetFloat("_CloudScale", 1.5f);
             mat.SetFloat("_DensityMultiplier", 1.0f);
@@ -236,6 +239,7 @@ namespace TimberHearthForest
             mat.SetFloat("_LightAbsorptionThroughCloud", 0.8f);
             mat.SetFloat("_LightAbsorptionTowardsSun", 0.4f);
             // mat.SetFloat("_DarknessThreshold", 0.2f);
+
             mat.SetFloat("_PhaseIntensity", 4.0f);
             mat.SetFloat("_ForwardScatteringBias", 0.2f);
 
@@ -244,14 +248,9 @@ namespace TimberHearthForest
 
             // ambient texture set in bundle
             mat.SetFloat("_AmbientStrength", 0.2f);
-            // mat.SetFloat("_AmbientMixFactor", 0.0f);
-
-            // mat.SetFloat("_PlanetShadowStrength", 1.0f);
-            // mat.SetFloat("_PlanetShadowSharpness", 1.0f);
 
             mat.SetVector("_Offset", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
             mat.SetVector("_Center", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
-            
 
             // Create the cloud sphere
             GameObject cloudSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -272,8 +271,44 @@ namespace TimberHearthForest
             cloudRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             cloudRenderer.receiveShadows = false;
 
+            // Setup the volumetric cloud's shadow material
+            Material shadowMat = volumetricCloudShadowMaterial;
+
+            shadowMat.SetFloat("_ErosionStrength", 0.3f);
+            shadowMat.SetFloat("_BlueNoiseStrength", 0.2f); // Dithering power
+            shadowMat.SetFloat("_BlueNoiseScale", 15.0f);
+
+            shadowMat.SetFloat("_OuterRadius", cloudOuterRadius);
+            shadowMat.SetFloat("_InnerRadius", cloudInnerRadius);
+
+            shadowMat.SetFloat("_CloudScale", 1.5f);
+            shadowMat.SetFloat("_DensityMultiplier", 1.0f);
+            shadowMat.SetFloat("_DensityThreshold", 0.65f);
+
+            shadowMat.SetVector("_Offset", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+            shadowMat.SetVector("_Center", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
+
+            // Create the cloud shadowcaster sphere
+            GameObject cloudShadowSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            cloudShadowSphere.transform.SetParent(cloudHolder.transform, false);
+
+            cloudShadowSphere.GetComponent<MeshFilter>()?.mesh = CreateSphereMesh(64, 64, 1.0f);
+            cloudShadowSphere.GetComponent<MeshFilter>()?.mesh = InvertMesh(cloudShadowSphere.GetComponent<MeshFilter>()?.mesh);
+
+            cloudShadowSphere.name = "Volumetric Clouds Shadowcaster";
+            cloudShadowSphere.GetComponent<SphereCollider>()?.enabled = false;
+
+            cloudShadowSphere.transform.localPosition = Vector3.zero;
+            cloudShadowSphere.transform.localRotation = Quaternion.identity;
+            cloudShadowSphere.transform.localScale = Vector3.one * (cloudInnerRadius + 25.0f);
+
+            MeshRenderer cloudShadowRenderer = cloudShadowSphere.GetComponent<MeshRenderer>();
+            cloudShadowRenderer.material = shadowMat;
+            cloudShadowRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+            cloudShadowRenderer.receiveShadows = false;
+
             // Store the volumetric cloud sphere gameobject
-            volumetricClouds.Add(cloudSphere);
+            volumetricClouds.Add((cloudSphere, cloudShadowSphere));
         }
 
         private static Mesh InvertMesh(Mesh original)

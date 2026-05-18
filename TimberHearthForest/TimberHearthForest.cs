@@ -36,7 +36,7 @@ namespace TimberHearthForest
 
         private List<(GameObject, float)> cloudObjects = new List<(GameObject, float)>();
 
-        private List<GameObject> volumetricCloudObjects = new List<GameObject>();
+        private List<(GameObject, GameObject)> volumetricCloudObjects = new List<(GameObject, GameObject)>();
 
         private GameObject THSatelliteObject;
 
@@ -163,7 +163,7 @@ namespace TimberHearthForest
         {
             // Clear the stored cloud renderers
             cloudObjects = new List<(GameObject, float)>();
-            volumetricCloudObjects = new List<GameObject>();
+            volumetricCloudObjects = new List<(GameObject, GameObject)>();
 
             AstroObject timberHearthAstroObject = Locator.GetAstroObject(AstroObject.Name.TimberHearth);
             GameObject cloudHolder = timberHearthAstroObject?.GetComponentInChildren<Sector>()?.transform.gameObject;
@@ -189,7 +189,7 @@ namespace TimberHearthForest
             CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, true, ref cloudObjects);
             CloudUtils.CreateCloud(cloudHolder, 295.0f, "timberHearthClouds3", "timberHearthCloudsNormal3", 0.0034f, false, ref cloudObjects);
 
-            CloudUtils.CreateVolumetricCloud(cloudHolder, 285.0f, 330.0f, ref volumetricCloudObjects);
+            CloudUtils.CreateVolumetricCloud(cloudHolder, 285.0f, 370.0f, ref volumetricCloudObjects);
 
             // Update whether volumetric clouds are enabled
             bool volumetricCloudsEnabled = ModHelper.Config.GetSettingsValue<string>("volumetricCloudsEnabled") == "Enabled";
@@ -230,15 +230,15 @@ namespace TimberHearthForest
         private void UpdateVolumetricCloudSettings(bool enabled, string quality, string size, string coverage)
         {
 
-            int raymarchSteps = 35;
-            int sunRaymarchSteps = 12;
+            float rayStepSize = 10.0f;
+            float sunRayStepSize = 20.0f;
 
             switch (quality)
             {
-                case "Ultra":   raymarchSteps = 70; sunRaymarchSteps = 20; break;
-                case "High":    raymarchSteps = 50; sunRaymarchSteps = 15; break;
-                case "Medium":  raymarchSteps = 35; sunRaymarchSteps = 12; break;
-                case "Low":     raymarchSteps = 20; sunRaymarchSteps = 12; break;
+                case "Ultra":   rayStepSize = 5.0f; sunRayStepSize = 10.0f; break;
+                case "High":    rayStepSize = 7.0f; sunRayStepSize = 12.0f; break;
+                case "Medium":  rayStepSize = 10.0f; sunRayStepSize = 20.0f; break;
+                case "Low":     rayStepSize = 20.0f; sunRayStepSize = 30.0f; break;
                 default:
                     ModHelper.Console.WriteLine($"Unknown volumetric cloud quality setting: {quality}", MessageType.Error);
                     break;
@@ -260,7 +260,7 @@ namespace TimberHearthForest
 
             switch (coverage)
             {
-                case "Full":    coverageThreshold = 0.47f; break;
+                case "Full":    coverageThreshold = 0.45f; break;
                 case "High":    coverageThreshold = 0.55f; break;
                 case "Medium":  coverageThreshold = 0.65f; break;
                 case "Low":     coverageThreshold = 0.72f; break;
@@ -269,7 +269,7 @@ namespace TimberHearthForest
                     break;
             }
 
-            foreach (GameObject cloud in volumetricCloudObjects)
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
             {
                 cloud?.SetActive(enabled);
 
@@ -277,10 +277,19 @@ namespace TimberHearthForest
 
                 if (cloudMat != null)
                 {
-                    cloudMat.SetInt("_NumSteps", raymarchSteps);
-                    cloudMat.SetInt("_NumSunSteps", sunRaymarchSteps);
+                    cloudMat.SetFloat("_StepSize", rayStepSize);
+                    cloudMat.SetFloat("_SunStepSize", sunRayStepSize);
+
                     cloudMat.SetFloat("_CloudScale", sizeMultiplier);
                     cloudMat.SetFloat("_DensityThreshold", coverageThreshold);
+                }
+
+                Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+
+                if (cloudShadowMat != null)
+                {
+                    cloudShadowMat.SetFloat("_CloudScale", sizeMultiplier);
+                    cloudShadowMat.SetFloat("_DensityThreshold", coverageThreshold);
                 }
             }
         }
@@ -801,7 +810,10 @@ namespace TimberHearthForest
             {
                 try
                 {
-                    Transform cloud = volumetricCloudObjects[i].transform;
+                    (GameObject cloudGO, GameObject shadowCloudGO) = volumetricCloudObjects[i];
+
+                    Transform cloud = cloudGO.transform;
+                    Transform shadowCloud = shadowCloudGO?.transform;
 
                     // Get the cloud's material
                     Material mat = cloud.GetComponent<MeshRenderer>().material;
@@ -820,6 +832,14 @@ namespace TimberHearthForest
                         mat.SetVector("_SunColor", sunLight.color * sunLight.intensity);
                         mat.SetFloat("_AmbientStrength", thAmbient / 50);
                         mat.SetVector("_MoonPosition", moonPos);
+                    }
+
+                    // Get the cloud's shadow material (if one exists)
+                    Material shadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+
+                    if (shadowMat != null)
+                    {
+                        shadowMat.SetVector("_Center", CloudPosition);
                     }
                 }
                 catch

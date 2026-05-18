@@ -14,6 +14,7 @@
 
         _StepSize ("Step Size", Range(1, 100)) = 10
         _SunStepSize ("Sun Step Size", Range(1, 100)) = 10
+        _DenseStepSize ("Dense Step Size", Range(1, 10)) = 4
 
         _CloudScale ("Cloud Scale", Float) = 0.62
         _DensityMultiplier ("Density Multiplier", Float) = 1.16
@@ -79,6 +80,7 @@
 
             UNITY_DECLARE_TEX3D(_CloudNoiseTex);
             sampler2D _BlueNoiseTex;
+
             float _ErosionStrength;
             float _BlueNoiseStrength;
 
@@ -88,6 +90,7 @@
 
             float _StepSize;
             float _SunStepSize;
+            float _DenseStepSize;
 
             float _CloudScale;
             float _DensityMultiplier;
@@ -337,7 +340,6 @@
                 return (value - from) / (to - from);
             }
 
-
             float3 GetAmbience(float distanceToCenter, float3 toPointDir, float3 sunDir)
             {
                 // copied from decompiled outer wilds shader code
@@ -427,11 +429,20 @@
                 float3 ambientColour = float3(0.0, 0.0, 0.0);
 
                 int numSteps = (outerHit.exitDist - outerHit.entryDist) / _StepSize;
+                numSteps += 100; // Safety steps
+
+                float dynamicStepSize = _StepSize;
 
                 for (int step = 0; step < numSteps; step++)
                 {
+                    // Check we are still inside the outer sphere
+                    if (t > outerHit.exitDist) break;
+
                     // If we are inside the inner sphere then the density is 0 so skip
                     bool insideInner = innerHit.didHit && (t > innerHit.entryDist && t < innerHit.exitDist);
+
+                    // Reset the dynamic step size
+                    dynamicStepSize = _StepSize;
 
                     if (!insideInner) {
                         float3 worldPos = ray.origin + ray.dir * t;
@@ -440,11 +451,16 @@
                         if (density > 0.0) {
 
                             float3 normSunDir = normalize(_SunDirection);
+
                             float3 toPoint = normalize(worldPos - _Center);
                             float distanceToCenter = length(worldPos - _Center);
+
+                            // Adjust the dynamic step size (smaller in dense clouds)
+                            bool inShadow = dot(_SunDirection, toPoint) < 0.0;
+                            if (density > 0.05 && inShadow) dynamicStepSize = _DenseStepSize;
                             
                             float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
-                            ambientColour += ambience * _StepSize * density;
+                            ambientColour += ambience * dynamicStepSize * density;
 
                             float lightTransmittance = MarchLight(worldPos);
                             
@@ -454,8 +470,8 @@
                             // shadow = pow(shadow, _PlanetShadowSharpness);
                             // lightTransmittance *= (1.0 - shadow * _PlanetShadowStrength);
 
-                            float absorption = density * _LightAbsorptionThroughCloud * _StepSize;
-                            float contribution = density * transmittance * lightTransmittance * phaseVal * _StepSize;
+                            float absorption = density * _LightAbsorptionThroughCloud * dynamicStepSize;
+                            float contribution = density * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
 
                             lightEnergy += contribution;
                             transmittance *= exp(-absorption);
@@ -466,7 +482,7 @@
 
                     // Step forward (jitter prevents banding)
                     //float jitter = frac(sin(dot(blueNoise * 10.0, float2(12.9898,78.233))) * 43758.5453);
-                    t += _StepSize;
+                    t += dynamicStepSize;
                 }
 
                 float3 col = _SunColor.rgb * lightEnergy;

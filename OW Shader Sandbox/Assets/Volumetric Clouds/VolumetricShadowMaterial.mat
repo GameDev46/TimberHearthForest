@@ -1,0 +1,63 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 6
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: VolumetricShadowMaterial
+  m_Shader: {fileID: 4800000, guid: 28cd2de75f71ced48be4d6f8b9b5e3d3, type: 3}
+  m_ShaderKeywords: 
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _AmbientTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BlueNoiseTex:
+        m_Texture: {fileID: 2800000, guid: 51ff5ad67aab42c43bb77c0fce63564d, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CloudNoiseTex:
+        m_Texture: {fileID: 11700000, guid: 39f8b0255c04f0446983dcfada5b59f2, type: 2}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Floats:
+    - _AmbientStrength: 1
+    - _BlueNoiseScale: 10
+    - _BlueNoiseStrength: 0.35
+    - _CloudScale: 1.5
+    - _DenseStepSize: 4
+    - _DensityMultiplier: 1
+    - _DensityThreshold: 0.65
+    - _ErosionStrength: 0.3
+    - _ForwardScatteringBias: 0.2
+    - _InnerRadius: 285
+    - _LightAbsorptionThroughCloud: 0.8
+    - _LightAbsorptionTowardsSun: 0.4
+    - _MoonRadius: 0
+    - _OuterRadius: 370
+    - _PhaseGB: -0.2
+    - _PhaseGF: 0.5
+    - _PhaseIntensity: 6
+    - _PlanetRadius: 10
+    - _ShadowThreshold: 0.01
+    - _StepSize: 10
+    - _SunStepSize: 10
+    - _TopBottomFadeFactor: 0.5
+    - _WhispyFactor: 100
+    m_Colors:
+    - _Center: {r: 0, g: 0, b: 0, a: 0}
+    - _MoonPosition: {r: 0, g: 0, b: 0, a: 0}
+    - _Offset: {r: 0, g: 0, b: 0, a: 0}
+    - _SunColor: {r: 1, g: 1, b: 1, a: 1}
+    - _SunDirection: {r: 0, g: 1, b: 0, a: 0}

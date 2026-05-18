@@ -36,12 +36,14 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
+    - _AmbienceSubSampleCount: 1
     - _AmbientFalloff: 0.1
     - _AmbientMixFactor: 0.2
     - _AmbientStrength: 0.03
     - _BlueNoiseStrength: 1
     - _CloudScale: 1.5
     - _DarknessThreshold: 0.2
+    - _DenseStepSize: 4
     - _Density: 1
     - _DensityMultiplier: 1
     - _DensityThreshold: 0.65
