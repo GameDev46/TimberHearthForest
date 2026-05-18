@@ -227,6 +227,7 @@ namespace TimberHearthForest
 
             mat.SetFloat("_StepSize", 10.0f);
             mat.SetFloat("_SunStepSize", 20.0f);
+            mat.SetFloat("_DenseStepSize", 4.0f); // The step size in the denser dark clouds (where banding is most prevalent)
 
             mat.SetFloat("_CloudScale", 1.5f);
             mat.SetFloat("_DensityMultiplier", 1.0f);

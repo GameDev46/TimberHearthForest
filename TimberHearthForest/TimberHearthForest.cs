@@ -260,7 +260,7 @@ namespace TimberHearthForest
 
             switch (coverage)
             {
-                case "Full":    coverageThreshold = 0.47f; break;
+                case "Full":    coverageThreshold = 0.45f; break;
                 case "High":    coverageThreshold = 0.55f; break;
                 case "Medium":  coverageThreshold = 0.65f; break;
                 case "Low":     coverageThreshold = 0.72f; break;
