@@ -256,7 +256,7 @@
                 return density;
             }
 
-            HitInfo RaySphere(Ray ray, fixed3 sphereCenter, float sphereRadius)
+            HitInfo RaySphere(Ray ray, float3 sphereCenter, float sphereRadius)
             {
                 HitInfo hitInfo;
                 hitInfo.didHit = false;

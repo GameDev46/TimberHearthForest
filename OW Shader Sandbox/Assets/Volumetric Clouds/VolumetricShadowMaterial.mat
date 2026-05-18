@@ -50,6 +50,7 @@ Material:
     - _PhaseGF: 0.5
     - _PhaseIntensity: 6
     - _PlanetRadius: 10
+    - _ShadowDarkness: 0.5
     - _ShadowThreshold: 0.01
     - _StepSize: 10
     - _SunStepSize: 10
@@ -60,4 +61,5 @@ Material:
     - _MoonPosition: {r: 0, g: 0, b: 0, a: 0}
     - _Offset: {r: 0, g: 0, b: 0, a: 0}
     - _SunColor: {r: 1, g: 1, b: 1, a: 1}
-    - _SunDirection: {r: 0, g: 1, b: 0, a: 0}
+    - _SunDirection: {r: 0, g: 0, b: 1, a: 0}
+    - _SunWorldPos: {r: 0, g: 0, b: 100, a: 0}
