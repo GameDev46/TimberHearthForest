@@ -36,7 +36,7 @@ namespace TimberHearthForest
 
         private List<(GameObject, float)> cloudObjects = new List<(GameObject, float)>();
 
-        public List<GameObject> volumetricCloudObjects = new List<GameObject>();
+        private List<GameObject> volumetricCloudObjects = new List<GameObject>();
 
         private GameObject THSatelliteObject;
 
@@ -157,8 +157,6 @@ namespace TimberHearthForest
 
             // Setup clouds around Timber Hearth
             SpawnAndSetupClouds();
-            
-            ModHelper.Events.Unity.FireOnNextUpdate(CloudUtils.InitVolumetricDrawing);
         }
 
         private void SpawnAndSetupClouds()

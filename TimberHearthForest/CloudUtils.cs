@@ -8,7 +8,6 @@ using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.Assertions;
-using UnityEngine.Rendering;
 
 namespace TimberHearthForest
 {
@@ -24,8 +23,6 @@ namespace TimberHearthForest
 
         private static AssetBundle volumetricCloudBundle;
         private static Material volumetricCloudMaterial;
-
-        private static CommandBuffer drawCmd = new(), shadowCmd = new();
 
         public static void SetModDirectoryPath(string dirPath)
         {
@@ -221,7 +218,7 @@ namespace TimberHearthForest
             Material mat = volumetricCloudMaterial;
 
             mat.SetFloat("_ErosionStrength", 0.3f);
-            // mat.SetFloat("_BlueNoiseStrength", 0.3f); // Dithering power
+            mat.SetFloat("_BlueNoiseStrength", 0.3f); // Dithering power
 
             mat.SetFloat("_OuterRadius", cloudOuterRadius);
             mat.SetFloat("_InnerRadius", cloudInnerRadius);
@@ -277,30 +274,6 @@ namespace TimberHearthForest
 
             // Store the volumetric cloud sphere gameobject
             volumetricClouds.Add(cloudSphere);
-        }
-
-        public static void InitVolumetricDrawing()
-        {
-            Camera.onPreRender = BuildCmd;
-            foreach (var cam in Camera.allCameras)
-            {
-                cam.AddCommandBuffer(CameraEvent.AfterForwardAlpha, drawCmd);
-            }
-            
-            return;
-            
-            // shadow hackery stolen from https://github.com/2walker2/OWJam5ModProject/blob/main/OWJam5ModProject/FakeShadow.cs
-            var sunLight = Locator.GetSunController()._sunLight._sunLight;
-            
-            // draw our stuff after screen space shadow mask gets drawn into by normal shadow stuff
-            sunLight.AddCommandBuffer(LightEvent.AfterScreenspaceMask, shadowCmd);
-        }
-
-        private static void BuildCmd(Camera cam)
-        {
-            drawCmd.Clear();
-            // drawCmd.GetTemporaryRT(Screen.currentResolution.x / 2);
-            // drawCmd.SetRenderTarget(BuiltinRenderTextureType.);
         }
 
         private static Mesh InvertMesh(Mesh original)
