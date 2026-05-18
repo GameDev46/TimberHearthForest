@@ -352,7 +352,7 @@ namespace TimberHearthForest
             drawCmd.SetRenderTarget(drawBuffer);
             drawCmd.DrawRenderer(cloudRenderer, cloudRenderer.sharedMaterial);
             drawCmd.SetRenderTarget(drawBuffer);
-            drawCmd.DrawRenderer(cloudRenderer, cloudRenderer.sharedMaterial);
+            drawCmd.DrawRenderer(cloudShadowRenderer, cloudShadowRenderer.sharedMaterial);
             
             // !! alternatively
             drawCmd.GetTemporaryRT(drawBuffer, cam.pixelWidth / DOWNSAMPLE, cam.pixelHeight / DOWNSAMPLE, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
