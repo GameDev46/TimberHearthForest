@@ -50,8 +50,9 @@ Material:
     - _PhaseGF: 0.5
     - _PhaseIntensity: 6
     - _PlanetRadius: 10
-    - _ShadowDarkness: 0.5
-    - _ShadowThreshold: 0.01
+    - _ShadowDarkness: 0.7
+    - _ShadowFalloff: 2
+    - _ShadowThreshold: 0
     - _StepSize: 10
     - _SunStepSize: 10
     - _TopBottomFadeFactor: 0.5

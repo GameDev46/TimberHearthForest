@@ -10,6 +10,7 @@
         _BlueNoiseScale ("Blue Noise Scale", Float) = 1.0
 
         _ShadowDarkness ("Shadow Darkness", Range(0,1)) = 0.5
+        _ShadowFalloff ("Shadow Falloff", Float) = 1.0
         _ShadowThreshold ("Shadow Threshold", Range(0,1)) = 0.1
 
         _OuterRadius ("Outer Radius", Float) = 80
@@ -64,6 +65,7 @@
             float _BlueNoiseScale;
 
             float _ShadowDarkness;
+            float _ShadowFalloff;
             float _ShadowThreshold;
 
             float _OuterRadius;
@@ -240,12 +242,12 @@
                 // Sun ray doesn't hit cloud sphere, so skip
                 if (!hit.didHit) discard;
 
-                float3 cloudSamplePoint = lightRay.origin + lightRay.dir * hit.entryDist;
+                float3 cloudSamplePoint = lightRay.origin + lightRay.dir * hit.exitDist;
 
                 float density = GetDensity(cloudSamplePoint);
                 if (density < _ShadowThreshold) discard;
                 
-                float shadowAlpha = smoothstep(_ShadowThreshold, 1.0, density) * _ShadowDarkness;
+                float shadowAlpha = smoothstep(_ShadowThreshold, 1.0, density * _ShadowFalloff) * _ShadowDarkness;
 
                 // Output shadow color blended smoothly by density alpha
                 fixed4 finalShadow = float4(0.0, 0.0, 0.0, 1.0);
