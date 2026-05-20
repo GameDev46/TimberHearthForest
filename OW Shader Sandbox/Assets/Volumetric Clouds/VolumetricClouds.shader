@@ -131,10 +131,6 @@
                 bool didHit;
                 float entryDist;
                 float exitDist;
-                float3 entryPoint;
-                float3 exitPoint;
-                float3 entryNormal;
-                float3 exitNormal;
             };
 
             v2f vert (appdata v)
@@ -260,6 +256,8 @@
             {
                 HitInfo hitInfo;
                 hitInfo.didHit = false;
+                hitInfo.entryDist = 0.0;
+                hitInfo.exitDist = 0.0;
 
                 fixed3 oc = ray.origin - sphereCenter;
 
@@ -290,12 +288,6 @@
                 // If inside sphere then the "entry" is the camera
                 hitInfo.entryDist = max(t0, 0.0);
                 hitInfo.exitDist  = t1;
-
-                hitInfo.entryPoint = ray.origin + hitInfo.entryDist * ray.dir;
-                hitInfo.exitPoint  = ray.origin + hitInfo.exitDist * ray.dir;
-
-                hitInfo.entryNormal = normalize(hitInfo.entryPoint - sphereCenter);
-                hitInfo.exitNormal = normalize(hitInfo.exitPoint - sphereCenter);
 
                 hitInfo.didHit = true;
                 return hitInfo;
