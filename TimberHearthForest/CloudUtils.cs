@@ -26,6 +26,8 @@ namespace TimberHearthForest
         private static Material volumetricCloudMaterial;
         private static Material volumetricCloudShadowMaterial;
 
+        private static GameObject cloudShadowSphere;
+
         public static void SetModDirectoryPath(string dirPath)
         {
             modFolderPath = dirPath;
@@ -290,7 +292,7 @@ namespace TimberHearthForest
             shadowMat.SetVector("_Center", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
 
             // Create the cloud shadowcaster sphere
-            GameObject cloudShadowSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            cloudShadowSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             cloudShadowSphere.transform.SetParent(cloudHolder.transform, false);
 
             cloudShadowSphere.GetComponent<MeshFilter>()?.mesh = CreateSphereMesh(64, 64, 1.0f);
@@ -301,7 +303,7 @@ namespace TimberHearthForest
 
             cloudShadowSphere.transform.localPosition = Vector3.zero;
             cloudShadowSphere.transform.localRotation = Quaternion.identity;
-            cloudShadowSphere.transform.localScale = Vector3.one * (cloudInnerRadius + 25.0f);
+            cloudShadowSphere.transform.localScale = Vector3.one * cloudOuterRadius * 1.5f;
 
             MeshRenderer cloudShadowRenderer = cloudShadowSphere.GetComponent<MeshRenderer>();
             cloudShadowRenderer.material = shadowMat;
@@ -321,10 +323,10 @@ namespace TimberHearthForest
             var compositeCmd = new CommandBuffer();
             var shadowCmd = new CommandBuffer();
 
-            var cam = new Camera(); // TODO: will be multiple cameras
-            var light = new Light(); // TODO: the sun
+            var cam = Locator.GetActiveCamera().mainCamera; // This covers player, map and FREECAM - not sure about the probe and sattelite cam
+            var light = Locator.GetSunController()._sunLight._sunLight; // First _sunLight is "SunLightController", second is "Light"
             var cloudRenderer = new Renderer(); // TODO: draws to regular screen eventually
-            var cloudShadowRenderer = new Renderer(); // TODO: draws to shadow mask
+            var cloudShadowRenderer = cloudShadowSphere.GetComponent<MeshRenderer>();
             var compositeMaterial = new Material(""); // TODO: copies to screen with `Blend One OneMinusSrcAlpha` 
             
             // put some geometry in front of the camera so shadows are forced to render
