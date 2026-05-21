@@ -3,18 +3,13 @@
     Properties
     {
         _CloudNoiseTex ("Cloud Noise Texture", 3D) = "white" {}
-        _BlueNoiseTex ("Blue Noise Texture", 2D) = "white" {}
 
         _ErosionStrength ("Erosion Strength", Float) = 0.5
-        _BlueNoiseStrength ("Blue Noise Strength", Range(0, 1)) = 0.3
-        _BlueNoiseScale ("Blue Noise Scale", Float) = 1.0
-
-        _ShadowDarkness ("Shadow Darkness", Range(0,1)) = 0.5
-        _ShadowFalloff ("Shadow Falloff", Float) = 1.0
-        _ShadowThreshold ("Shadow Threshold", Range(0,1)) = 0.1
 
         _OuterRadius ("Outer Radius", Float) = 80
         _InnerRadius ("Inner Radius", Float) = 10
+        
+        _SunStepSize ("Sun Step Size", Range(1, 100)) = 10
 
         _CloudScale ("Cloud Scale", Float) = 0.62
         _DensityMultiplier ("Density Multiplier", Float) = 1.16
@@ -22,6 +17,8 @@
 
         _TopBottomFadeFactor ("Top/Bottom Fade Factor", Range(0,1)) = 0.5
         _WhispyFactor ("Whispy Factor", Float) = 20.0
+        
+        _LightAbsorptionTowardsSun ("Light Absorption Towards Sun", Float) = 0.4
 
         _SunDirection ("Sun Direction", Vector) = (0,1,0,0)
 
@@ -58,18 +55,13 @@
             sampler2D_float _CameraDepthTexture;
 
             UNITY_DECLARE_TEX3D(_CloudNoiseTex);
-            sampler2D _BlueNoiseTex;
 
             float _ErosionStrength;
-            float _BlueNoiseStrength;
-            float _BlueNoiseScale;
-
-            float _ShadowDarkness;
-            float _ShadowFalloff;
-            float _ShadowThreshold;
 
             float _OuterRadius;
             float _InnerRadius;
+            
+            float _SunStepSize;
 
             float _CloudScale;
             float _DensityMultiplier;
@@ -77,6 +69,8 @@
 
             float _TopBottomFadeFactor;
             float _WhispyFactor;
+            
+            float _LightAbsorptionTowardsSun;
 
             float3 _SunDirection;
 
@@ -200,14 +194,33 @@
                 return hitInfo;
             }
 
-            // [0, 1] blue noise
-            float SampleBlueNoise(float2 screenUV)
+            float MarchLight(float3 origin)
             {
-                // Blue noise implementation from https://blog.maximeheckel.com/posts/real-time-cloudscapes-with-volumetric-raymarching/
-                // Blue noise texture from https://github.com/Calinou/free-blue-noise-textures/blob/master/128_128/HDR_LA_0.png
+                Ray sunRay;
+                sunRay.origin = origin;
+                sunRay.dir = normalize(_SunDirection);
 
-                float2 noiseUV = floor(screenUV * _ScreenParams.xy) / 128.0;
-                return tex2Dlod(_BlueNoiseTex, float4(noiseUV, 0, 0)).r;
+                // Calculate the intersection point with the out sphere
+                HitInfo hit = RaySphere(sunRay, _Center, _OuterRadius);
+                if (!hit.didHit) return 1.0;
+
+                // Calulate the sampling step size
+                int numSteps = (hit.exitDist - hit.entryDist) / _SunStepSize;
+
+                float3 position = origin;
+                float totalDensity = 0.0;
+
+                // Step through the cloud towards the sun to calculate the total cloud density
+                for (int i = 0; i < numSteps; i++)
+                {
+                    position += sunRay.dir * _SunStepSize;
+                    totalDensity += max(0.0, GetDensity(position) * _SunStepSize);
+                }
+
+                // Calculate the light recieved to the point in the cloud
+                float transmitance = exp(-totalDensity * _LightAbsorptionTowardsSun);
+                return transmitance;
+                // return _DarknessThreshold + transmitance * (1.0 - _DarknessThreshold);
             }
 
             float4 frag(v2f i) : SV_Target
@@ -224,22 +237,7 @@
                 worldRay /= dot(worldRay, -UNITY_MATRIX_V[2].xyz);
                 float3 groundWorldPos = _WorldSpaceCameraPos + worldRay * depth;
 
-                Ray lightRay;
-                lightRay.origin = groundWorldPos;
-                lightRay.dir = normalize(_SunDirection);
-
-                float biasedCloudRadius = (_InnerRadius * 0.8 + _OuterRadius * 0.2);
-                HitInfo hit = RaySphere(lightRay, _Center, biasedCloudRadius);
-
-                // Sun ray doesn't hit cloud sphere, so skip
-                if (!hit.didHit) discard;
-
-                float3 cloudSamplePoint = lightRay.origin + lightRay.dir * hit.exitDist;
-
-                float density = GetDensity(cloudSamplePoint);
-                if (density < _ShadowThreshold) discard;
-                
-                float shadowAlpha = smoothstep(_ShadowThreshold, 1.0, density * _ShadowFalloff) * _ShadowDarkness;
+                float shadowAlpha = 1-MarchLight(groundWorldPos);
 
                 // Output shadow color blended smoothly by density alpha
                 fixed4 finalShadow = float4(0.0, 0.0, 0.0, 1.0);
