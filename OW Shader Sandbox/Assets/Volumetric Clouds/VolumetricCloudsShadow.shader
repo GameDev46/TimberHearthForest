@@ -163,6 +163,8 @@
             {
                 HitInfo hitInfo;
                 hitInfo.didHit = false;
+                hitInfo.entryDist = 0.0;
+                hitInfo.exitDist = 0.0;
 
                 fixed3 oc = ray.origin - sphereCenter;
 
