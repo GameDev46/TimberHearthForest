@@ -33,7 +33,7 @@
         Tags{ "RenderType"="Transparent" "Queue"="Transparent-400" "DisableBatching"="True" }
         Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
-        Cull Off
+        Cull Front
         ZTest Always
 
         Pass
@@ -216,7 +216,7 @@
 
                 float depth = SAMPLE_DEPTH_TEXTURE(_CameraDepthTexture, screenUv);
                 // Skip pixels which have no object to recieve shadow
-                if (depth > 1.0) discard;
+                if (depth == 0.0) discard;
 
                 depth = Linear01Depth(depth) * _ProjectionParams.z;
 
