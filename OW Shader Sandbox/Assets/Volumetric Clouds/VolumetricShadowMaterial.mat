@@ -34,7 +34,7 @@ Material:
     m_Floats:
     - _AmbientStrength: 1
     - _BlueNoiseScale: 10
-    - _BlueNoiseStrength: 0.35
+    - _BlueNoiseStrength: 1
     - _CloudScale: 1.5
     - _DenseStepSize: 4
     - _DensityMultiplier: 1
@@ -54,7 +54,7 @@ Material:
     - _ShadowFalloff: 2
     - _ShadowThreshold: 0
     - _StepSize: 10
-    - _SunStepSize: 10
+    - _SunStepSize: 20
     - _TopBottomFadeFactor: 0.5
     - _WhispyFactor: 100
     m_Colors:

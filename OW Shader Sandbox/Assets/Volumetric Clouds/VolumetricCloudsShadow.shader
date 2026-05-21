@@ -3,8 +3,10 @@
     Properties
     {
         _CloudNoiseTex ("Cloud Noise Texture", 3D) = "white" {}
+        _BlueNoiseTex ("Blue Noise Texture", 2D) = "white" {}
 
         _ErosionStrength ("Erosion Strength", Float) = 0.5
+        _BlueNoiseStrength ("Blue Noise Strength", Range(0, 1)) = 0.3
 
         _OuterRadius ("Outer Radius", Float) = 80
         _InnerRadius ("Inner Radius", Float) = 10
@@ -55,8 +57,10 @@
             sampler2D_float _CameraDepthTexture;
 
             UNITY_DECLARE_TEX3D(_CloudNoiseTex);
+            sampler2D _BlueNoiseTex;
 
             float _ErosionStrength;
+            float _BlueNoiseStrength;
 
             float _OuterRadius;
             float _InnerRadius;
@@ -193,8 +197,18 @@
                 hitInfo.didHit = true;
                 return hitInfo;
             }
+            
+            // 0..1 blue noise
+            float SampleBlueNoise(float2 screenUV)
+            {
+                // Blue noise implementation from https://blog.maximeheckel.com/posts/real-time-cloudscapes-with-volumetric-raymarching/
+                // Blue noise texture from https://github.com/Calinou/free-blue-noise-textures/blob/master/128_128/HDR_LA_0.png
 
-            float MarchLight(float3 origin)
+                float2 noiseUV = floor(screenUV * _ScreenParams.xy) / 128.0;
+                return tex2Dlod(_BlueNoiseTex, float4(noiseUV, 0, 0)).r;
+            }
+
+            float MarchLight(float3 origin, float2 screenUv)
             {
                 Ray sunRay;
                 sunRay.origin = origin;
@@ -207,7 +221,10 @@
                 // Calulate the sampling step size
                 int numSteps = (hit.exitDist - hit.entryDist) / _SunStepSize;
 
-                float3 position = origin;
+                float blueNoise = SampleBlueNoise(screenUv) * _BlueNoiseStrength;
+                hit.entryDist += blueNoise * _SunStepSize;
+                
+                float3 position = origin + sunRay.dir * hit.entryDist;
                 float totalDensity = 0.0;
 
                 // Step through the cloud towards the sun to calculate the total cloud density
@@ -237,7 +254,7 @@
                 worldRay /= dot(worldRay, -UNITY_MATRIX_V[2].xyz);
                 float3 groundWorldPos = _WorldSpaceCameraPos + worldRay * depth;
 
-                float shadowAlpha = 1-MarchLight(groundWorldPos);
+                float shadowAlpha = 1-MarchLight(groundWorldPos, screenUv);
 
                 // Output shadow color blended smoothly by density alpha
                 fixed4 finalShadow = float4(0.0, 0.0, 0.0, 1.0);
