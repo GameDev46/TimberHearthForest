@@ -254,6 +254,12 @@
                 worldRay /= dot(worldRay, -UNITY_MATRIX_V[2].xyz);
                 float3 groundWorldPos = _WorldSpaceCameraPos + worldRay * depth;
 
+                // Stop clouds casting shadows on distant objects
+                float centerDistance = distance(groundWorldPos, _Center);
+                float shadowCullingRadius = _OuterRadius + 10.0;
+
+                if (centerDistance > shadowCullingRadius) return float4(0.0, 0.0, 0.0, 0.0);
+
                 float shadowAlpha = 1-MarchLight(groundWorldPos, screenUv);
 
                 // Output shadow color blended smoothly by density alpha
