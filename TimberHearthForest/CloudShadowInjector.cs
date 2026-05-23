@@ -29,12 +29,12 @@ namespace TimberHearthForest
             EnabledShadows();
         }
 
-        private void EnabledShadows()
+        public void EnabledShadows()
         {
             meshRenderer = GetComponent<MeshRenderer>();
             meshRenderer.enabled = false;
 
-            if (targetLight != null)
+            if (targetLight != null && cmd == null)
             {
                 cmd = new CommandBuffer();
                 cmd.name = "Volumetric Cloud Shadow Injection";
@@ -47,17 +47,17 @@ namespace TimberHearthForest
             }
         }
 
-        private void OnDisable()
+        public void DisableShadows()
         {
             if (targetLight != null && cmd != null)
             {
                 targetLight.RemoveCommandBuffer(LightEvent.AfterScreenspaceMask, cmd);
                 cmd.Release();
                 cmd = null;
-            }
 
-            Camera.onPreRender -= BuildCommandBuffer;
-            Camera.onPostRender -= ClearCommandBuffer;
+                Camera.onPreRender -= BuildCommandBuffer;
+                Camera.onPostRender -= ClearCommandBuffer;
+            }
         }
 
         private void BuildCommandBuffer(Camera cam)

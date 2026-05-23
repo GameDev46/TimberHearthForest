@@ -93,6 +93,16 @@
       ],
       "tooltip": "Toggles on/off volumetric clouds (experimental)"
     },
+    "volumetricCloudShadowsEnabled": {
+      "title": "Volumetric Cloud Shadows",
+      "type": "selector",
+      "value": "Enabled",
+      "options": [
+        "Enabled",
+        "Disabled"
+      ],
+      "tooltip": "Toggles on/off volumetric cloud shadows (experimental)"
+    },
     "volumetricCloudQuality": {
       "title": "Volumetric Cloud Quality",
       "type": "selector",

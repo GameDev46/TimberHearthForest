@@ -121,10 +121,11 @@ namespace TimberHearthForest
 
             // Update whether volumetric clouds are enabled
             bool volumetricCloudsEnabled = config.GetSettingsValue<string>("volumetricCloudsEnabled") == "Enabled";
+            bool volumetricCloudShadowsEnabled = config.GetSettingsValue<string>("volumetricCloudShadowsEnabled") == "Enabled";
             string volumetricCloudQuality = config.GetSettingsValue<string>("volumetricCloudQuality");
             string volumetricCloudSize = config.GetSettingsValue<string>("volumetricCloudSize");
             string volumetricCloudCoverage = config.GetSettingsValue<string>("volumetricCloudCoverage");
-            UpdateVolumetricCloudSettings(volumetricCloudsEnabled, volumetricCloudQuality, volumetricCloudSize, volumetricCloudCoverage);
+            UpdateVolumetricCloudSettings(volumetricCloudsEnabled, volumetricCloudShadowsEnabled, volumetricCloudQuality, volumetricCloudSize, volumetricCloudCoverage);
 
             // Update whether clouds are enabled
             string cloudDensityPreset = config.GetSettingsValue<string>("cloudDensity");
@@ -193,10 +194,11 @@ namespace TimberHearthForest
 
             // Update whether volumetric clouds are enabled
             bool volumetricCloudsEnabled = ModHelper.Config.GetSettingsValue<string>("volumetricCloudsEnabled") == "Enabled";
+            bool volumetricCloudShadowsEnabled = ModHelper.Config.GetSettingsValue<string>("volumetricCloudShadowsEnabled") == "Enabled";
             string volumetricCloudQuality = ModHelper.Config.GetSettingsValue<string>("volumetricCloudQuality");
             string volumetricCloudSize = ModHelper.Config.GetSettingsValue<string>("volumetricCloudSize");
             string volumetricCloudCoverage = ModHelper.Config.GetSettingsValue<string>("volumetricCloudCoverage");
-            UpdateVolumetricCloudSettings(volumetricCloudsEnabled, volumetricCloudQuality, volumetricCloudSize, volumetricCloudCoverage);
+            UpdateVolumetricCloudSettings(volumetricCloudsEnabled, volumetricCloudShadowsEnabled, volumetricCloudQuality, volumetricCloudSize, volumetricCloudCoverage);
 
             // Apply the initial cloud visibility setting
             string cloudDensityPreset = ModHelper.Config.GetSettingsValue<string>("cloudDensity");
@@ -227,7 +229,7 @@ namespace TimberHearthForest
             }
         }
 
-        private void UpdateVolumetricCloudSettings(bool enabled, string quality, string size, string coverage)
+        private void UpdateVolumetricCloudSettings(bool enabled, bool shadowsEnabled, string quality, string size, string coverage)
         {
 
             float rayStepSize = 10.0f;
@@ -274,7 +276,6 @@ namespace TimberHearthForest
                 cloud?.SetActive(enabled);
 
                 Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
-
                 if (cloudMat != null)
                 {
                     cloudMat.SetFloat("_StepSize", rayStepSize);
@@ -285,11 +286,19 @@ namespace TimberHearthForest
                 }
 
                 Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
-
                 if (cloudShadowMat != null)
                 {
                     cloudShadowMat.SetFloat("_CloudScale", sizeMultiplier);
                     cloudShadowMat.SetFloat("_DensityThreshold", coverageThreshold);
+                }
+
+                CloudShadowInjector shadowInjector = shadowCloud?.GetComponent<CloudShadowInjector>();
+                if (shadowInjector != null) {
+                    if (enabled && shadowsEnabled) {
+                        shadowInjector.EnabledShadows();
+                    } else {
+                        shadowInjector.DisableShadows();
+                    }
                 }
             }
         }
