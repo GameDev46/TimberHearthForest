@@ -40,11 +40,37 @@ Shader "Hidden/Composite"
             }
 
             sampler2D _MainTex;
-
+            float4 _MainTex_TexelSize;
+            
             fixed4 frag(v2f i) : SV_Target
             {
-                // return float4(1,0,0,1);
-                return tex2D(_MainTex, i.uv);
+                
+                    float Pi = 6.28318530718; // Pi*2
+    
+    // GAUSSIAN BLUR SETTINGS {{{
+    float Directions = 16.0; // BLUR DIRECTIONS (Default 16.0 - More is better but slower)
+    float Quality = 3.0; // BLUR QUALITY (Default 4.0 - More is better but slower)
+    float Size = 16.0; // BLUR SIZE (Radius)
+    // GAUSSIAN BLUR SETTINGS }}}
+   
+    float2 Radius = Size/(_MainTex_TexelSize.zw*4);
+    
+    // Normalized pixel coordinates (from 0 to 1)
+    float2 uv = i.vertex/(_MainTex_TexelSize.zw*4);
+    // Pixel colour
+    float4 Color = tex2D(_MainTex, uv);
+    
+    // Blur calculations
+    for( float d=0.0; d<Pi; d+=Pi/Directions)
+    {
+		for(float i=1.0/Quality; i<=1.0; i+=1.0/Quality)
+        {
+			Color += tex2D( _MainTex, uv+float2(cos(d),sin(d))*Radius*i);		
+        }
+    }
+
+                
+                return Color/50;
             }
             ENDCG
         }
