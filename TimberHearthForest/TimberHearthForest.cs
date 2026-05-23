@@ -812,7 +812,7 @@ namespace TimberHearthForest
             Transform sunTransform = Locator.GetSunTransform();
             
             var sunLight = Locator.GetSunController()._sunLight._sunLight;
-            var moonPos = Locator.GetAstroObject(AstroObject.Name.TimberMoon).transform.position;
+            var moonPos = Locator.GetAstroObject(AstroObject.Name.TimberHearth)._moon.transform.position;
             var thAmbient = Locator.GetAstroObject(AstroObject.Name.TimberHearth).transform.Find("AmbientLight_TH").GetComponent<Light>().intensity;
 
             for (int i = 0; i < volumetricCloudObjects.Count; i++)
