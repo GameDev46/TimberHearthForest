@@ -296,8 +296,10 @@ namespace TimberHearthForest
                 if (shadowInjector != null) {
                     if (enabled && shadowsEnabled) {
                         shadowInjector.EnabledShadows();
+                        shadowInjector.shadowsEnabledOnStart = true;
                     } else {
                         shadowInjector.DisableShadows();
+                        shadowInjector.shadowsEnabledOnStart = false;
                     }
                 }
             }

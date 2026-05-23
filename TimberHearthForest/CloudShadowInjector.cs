@@ -12,12 +12,17 @@ namespace TimberHearthForest
     [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
     public class CloudShadowInjector : MonoBehaviour
     {
+        public bool shadowsEnabledOnStart = true;
+
         public Light targetLight;
         private MeshRenderer meshRenderer;
         private CommandBuffer cmd;
 
         public void Start()
         {
+            meshRenderer = GetComponent<MeshRenderer>();
+            meshRenderer.enabled = false;
+
             StartCoroutine(WaitToSetupVolumetricShadows());
         }
 
@@ -26,14 +31,11 @@ namespace TimberHearthForest
             yield return new WaitForSeconds(3.0f);
 
             targetLight = Locator.GetSunController()._sunLight._sunLight;
-            EnabledShadows();
+            if (shadowsEnabledOnStart) EnabledShadows();
         }
 
         public void EnabledShadows()
         {
-            meshRenderer = GetComponent<MeshRenderer>();
-            meshRenderer.enabled = false;
-
             if (targetLight != null && cmd == null)
             {
                 cmd = new CommandBuffer();
