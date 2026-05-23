@@ -220,6 +220,12 @@ namespace TimberHearthForest
                 return;
             }
 
+            if (volumetricCloudShadowMaterial == null)
+            {
+                modConsole.WriteLine($"Failed to locate the volumetric cloud shadow material from Assets/volumetricclouds", MessageType.Error);
+                return;
+            }
+
             // Setup the volumetric clouds material
             Material mat = volumetricCloudMaterial;
 
@@ -288,6 +294,8 @@ namespace TimberHearthForest
             shadowMat.SetFloat("_DensityMultiplier", 1.0f);
             shadowMat.SetFloat("_DensityThreshold", 0.65f);
 
+            shadowMat.SetVector("_SunDirection", new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
+
             shadowMat.SetVector("_Offset", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
             shadowMat.SetVector("_Center", new Vector4(0.0f, 0.0f, 0.0f, 0.0f));
 
@@ -307,8 +315,11 @@ namespace TimberHearthForest
 
             MeshRenderer cloudShadowRenderer = cloudShadowSphere.GetComponent<MeshRenderer>();
             cloudShadowRenderer.material = shadowMat;
-            cloudShadowRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.ShadowsOnly;
+            cloudShadowRenderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             cloudShadowRenderer.receiveShadows = false;
+
+            CloudShadowInjector cloudShadowInjector = cloudShadowSphere.AddComponent<CloudShadowInjector>();
+            cloudShadowInjector.enabled = true;
 
             // Store the volumetric cloud sphere gameobject
             volumetricClouds.Add((cloudSphere, cloudShadowSphere));
@@ -316,7 +327,7 @@ namespace TimberHearthForest
 
         #region command buffer shenanigans
 
-        public static void Stuff()
+        /*public static void Stuff()
         {
             // draft code
             var drawCmd = new CommandBuffer();
@@ -350,7 +361,7 @@ namespace TimberHearthForest
             // rebuild this one every frame since it uses camera width/height which might change (like in Camera.onPreRender cuz that gives you the camera)
             drawCmd.GetTemporaryRT(drawBuffer, cam.pixelWidth / DOWNSAMPLE, cam.pixelHeight / DOWNSAMPLE, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
             drawCmd.GetTemporaryRT(shadowBuffer, cam.pixelWidth / DOWNSAMPLE, cam.pixelHeight / DOWNSAMPLE, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear);
-            /*foreach cloud*/
+            //foreach cloud
             drawCmd.SetRenderTarget(drawBuffer);
             drawCmd.DrawRenderer(cloudRenderer, cloudRenderer.sharedMaterial);
             drawCmd.SetRenderTarget(drawBuffer);
@@ -360,7 +371,7 @@ namespace TimberHearthForest
             drawCmd.GetTemporaryRT(drawBuffer, cam.pixelWidth / DOWNSAMPLE, cam.pixelHeight / DOWNSAMPLE, 0, FilterMode.Bilinear, RenderTextureFormat.ARGBHalf, RenderTextureReadWrite.Linear);
             drawCmd.GetTemporaryRT(shadowBuffer, cam.pixelWidth / DOWNSAMPLE, cam.pixelHeight / DOWNSAMPLE, 0, FilterMode.Bilinear, RenderTextureFormat.R8, RenderTextureReadWrite.Linear);
             drawCmd.SetRenderTarget([drawBuffer, shadowBuffer], drawBuffer);
-            /*foreach cloud*/
+            //foreach cloud
             drawCmd.DrawRenderer(cloudRenderer, cloudRenderer.sharedMaterial);
             /*
              * in the shader you can return a struct:
@@ -370,20 +381,20 @@ namespace TimberHearthForest
                 float shadow : SV_Target1;
             };
              */
-            
-            // everything else can probably just build once since its not passing in different data per frame
-            
-            // this copies to screen
-            compositeCmd.Blit(drawBuffer, BuiltinRenderTextureType.CurrentActive, compositeMaterial);
-            
-            // this copies to shadow mask
-            shadowCmd.Blit(shadowBuffer, BuiltinRenderTextureType.CurrentActive);
-            
-            cam.AddCommandBuffer(CameraEvent.AfterForwardAlpha, drawCmd);
-            // i think render target gets restored here hopefully
-            cam.AddCommandBuffer(CameraEvent.AfterForwardAlpha, compositeCmd);
-            light.AddCommandBuffer(LightEvent.AfterScreenspaceMask, shadowCmd);
-        }
+
+        // everything else can probably just build once since its not passing in different data per frame
+
+        // this copies to screen
+        /*compositeCmd.Blit(drawBuffer, BuiltinRenderTextureType.CurrentActive, compositeMaterial);
+
+        // this copies to shadow mask
+        shadowCmd.Blit(shadowBuffer, BuiltinRenderTextureType.CurrentActive);
+
+        cam.AddCommandBuffer(CameraEvent.AfterForwardAlpha, drawCmd);
+        // i think render target gets restored here hopefully
+        cam.AddCommandBuffer(CameraEvent.AfterForwardAlpha, compositeCmd);
+        light.AddCommandBuffer(LightEvent.AfterScreenspaceMask, shadowCmd);
+    }*/
 
         #endregion
 

@@ -840,6 +840,7 @@ namespace TimberHearthForest
                     if (shadowMat != null)
                     {
                         shadowMat.SetVector("_Center", CloudPosition);
+                        shadowMat.SetVector("_SunDirection", sunDirection);
                     }
                 }
                 catch

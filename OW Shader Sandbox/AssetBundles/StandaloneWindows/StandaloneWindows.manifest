@@ -1,5 +1,5 @@
 ManifestFileVersion: 0
-CRC: 1340865132
+CRC: 3708199058
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
@@ -10,4 +10,7 @@ AssetBundleManifest:
       Dependencies: {}
     Info_2:
       Name: volumetricclouds
+      Dependencies: {}
+    Info_3:
+      Name: walker_jam5_assets
       Dependencies: {}
