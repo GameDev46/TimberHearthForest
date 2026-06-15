@@ -250,6 +250,8 @@ namespace TimberHearthForest
             mat.SetFloat("_PhaseIntensity", 4.0f);
             mat.SetFloat("_ForwardScatteringBias", 0.2f);
 
+            mat.SetFloat("_WarpStrength", 120.0f);
+
             mat.SetVector("_SunDirection", new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
             mat.SetColor("_SunColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));
 
@@ -291,6 +293,8 @@ namespace TimberHearthForest
             shadowMat.SetFloat("_CloudScale", 1.5f);
             shadowMat.SetFloat("_DensityMultiplier", 1.0f);
             shadowMat.SetFloat("_DensityThreshold", 0.65f);
+
+            shadowMat.SetFloat("_WarpStrength", 120.0f);
 
             shadowMat.SetVector("_SunDirection", new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
 

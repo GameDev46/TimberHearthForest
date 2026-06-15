@@ -138,6 +138,19 @@
       ],
       "tooltip": "Controls the average sky coverage of the volumetric clouds"
     },
+    "volumetricCloudTurbulence": {
+      "title": "Volumetric Cloud Turbulence",
+      "type": "selector",
+      "value": "Medium",
+      "options": [
+        "Intense",
+        "High",
+        "Medium",
+        "Low",
+        "None"
+      ],
+      "tooltip": "Controls the turbulence of the volumetric clouds"
+    },
     "optimisationSeparator": {
       "type": "separator"
     },

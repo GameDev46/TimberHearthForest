@@ -21,6 +21,8 @@
         _DensityThreshold ("Density Threshold", Float) = 0.76
 
         _WhispyFactor ("Whispy Factor", Float) = 20.0
+        _WarpStrength ("Warp Strength", Float) = 0.5
+        _WarpScale ("Warp Scale", Float) = 100.0
         _TopBottomFadeFactor ("Top/Bottom Fade Factor", Range(0,1)) = 0.5
 
         _LightAbsorptionThroughCloud ("Light Absorption Through Cloud", Float) = 0.8
@@ -97,6 +99,8 @@
             float _DensityThreshold;
 
             float _WhispyFactor;
+            float _WarpStrength;
+            float _WarpScale;
             float _TopBottomFadeFactor;
 
             float _LightAbsorptionThroughCloud;
@@ -227,8 +231,12 @@
             float GetDensity(float3 worldPos)
             {
                 // Sample noise
-                float scale = _CloudScale;
-                float2 noiseData = Noise((worldPos - _Center) * scale + _Offset);
+                float3 noiseSamplePos = (worldPos - _Center) * _CloudScale + _Offset;
+
+                float4 warpNoise = UNITY_SAMPLE_TEX3D_LOD(_CloudNoiseTex, frac(noiseSamplePos * 0.00001 * _WarpScale), 0);
+                float3 distortOffset = float3(warpNoise.r - 0.5, warpNoise.g - 0.5, warpNoise.b - 0.5) * _CloudScale * _WarpStrength;
+
+                float2 noiseData = Noise(noiseSamplePos + distortOffset);
 
                 float density = noiseData.x;
                 float detail = noiseData.y;

@@ -67,6 +67,8 @@ Material:
     - _StepSize: 10
     - _SunStepSize: 20
     - _TopBottomFadeFactor: 0.5
+    - _WarpScale: 80
+    - _WarpStrength: 150
     - _WhispyFactor: 100
     m_Colors:
     - _AmbientColor: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 1}
