@@ -151,6 +151,20 @@
       ],
       "tooltip": "Controls the turbulence of the volumetric clouds"
     },
+    "godRayStrength": {
+      "title": "Volumetric Cloud God Rays",
+      "type": "selector",
+      "value": "Medium",
+      "options": [
+        "Strong",
+        "High",
+        "Medium",
+        "Weak",
+        "Very Weak",
+        "None"
+      ],
+      "tooltip": "Controls the strength of the god rays for the volumetric clouds"
+    },
     "optimisationSeparator": {
       "type": "separator"
     },

@@ -126,6 +126,7 @@ namespace TimberHearthForest
             string volumetricCloudSize = config.GetSettingsValue<string>("volumetricCloudSize");
             string volumetricCloudCoverage = config.GetSettingsValue<string>("volumetricCloudCoverage");
             string volumetricCloudTurbulence = config.GetSettingsValue<string>("volumetricCloudTurbulence");
+            string volumetricCloudGodRayStrength = config.GetSettingsValue<string>("godRayStrength");
 
             UpdateVolumetricCloudSettings(
                 volumetricCloudsEnabled,
@@ -133,7 +134,8 @@ namespace TimberHearthForest
                 volumetricCloudQuality,
                 volumetricCloudSize,
                 volumetricCloudCoverage,
-                volumetricCloudTurbulence
+                volumetricCloudTurbulence,
+                volumetricCloudGodRayStrength
             );
 
             // Update whether clouds are enabled
@@ -208,6 +210,7 @@ namespace TimberHearthForest
             string volumetricCloudSize = ModHelper.Config.GetSettingsValue<string>("volumetricCloudSize");
             string volumetricCloudCoverage = ModHelper.Config.GetSettingsValue<string>("volumetricCloudCoverage");
             string volumetricCloudTurbulence = ModHelper.Config.GetSettingsValue<string>("volumetricCloudTurbulence");
+            string volumetricCloudGodRayStrength = ModHelper.Config.GetSettingsValue<string>("godRayStrength");
 
             UpdateVolumetricCloudSettings(
                 volumetricCloudsEnabled,
@@ -215,7 +218,8 @@ namespace TimberHearthForest
                 volumetricCloudQuality,
                 volumetricCloudSize,
                 volumetricCloudCoverage,
-                volumetricCloudTurbulence
+                volumetricCloudTurbulence,
+                volumetricCloudGodRayStrength
             );
 
             // Apply the initial cloud visibility setting
@@ -247,7 +251,7 @@ namespace TimberHearthForest
             }
         }
 
-        private void UpdateVolumetricCloudSettings(bool enabled, bool shadowsEnabled, string quality, string size, string coverage, string turbulence)
+        private void UpdateVolumetricCloudSettings(bool enabled, bool shadowsEnabled, string quality, string size, string coverage, string turbulence, string godRayStrength)
         {
 
             float rayStepSize = 10.0f;
@@ -289,17 +293,32 @@ namespace TimberHearthForest
                     break;
             }
 
-            float turbulenceStrength = 120.0f;
+            float turbulenceStrength = 140.0f;
 
             switch (turbulence)
             {
-                case "Intense": turbulenceStrength = 250.0f; break;
-                case "High": turbulenceStrength = 160.0f; break;
-                case "Medium": turbulenceStrength = 120.0f; break;
+                case "Intense": turbulenceStrength = 350.0f; break;
+                case "High": turbulenceStrength = 200.0f; break;
+                case "Medium": turbulenceStrength = 140.0f; break;
                 case "Low": turbulenceStrength = 60.0f; break;
                 case "None": turbulenceStrength = 0.0f; break;
                 default:
                     ModHelper.Console.WriteLine($"Unknown volumetric cloud turbulence setting: {turbulence}", MessageType.Error);
+                    break;
+            }
+
+            float airDensity = 0.001f;
+
+            switch (godRayStrength)
+            {
+                case "Strong": airDensity = 0.005f; break;
+                case "High": airDensity = 0.002f; break;
+                case "Medium": airDensity = 0.001f; break;
+                case "Weak": airDensity = 0.0005f; break;
+                case "Very Weak": airDensity = 0.0001f; break;
+                case "None": airDensity = 0.0f; break;
+                default:
+                    ModHelper.Console.WriteLine($"Unknown volumetric cloud god ray strength setting: {godRayStrength}", MessageType.Error);
                     break;
             }
 
@@ -317,6 +336,7 @@ namespace TimberHearthForest
                     cloudMat.SetFloat("_DensityThreshold", coverageThreshold);
 
                     cloudMat.SetFloat("_WarpStrength", turbulenceStrength);
+                    cloudMat.SetFloat("_AirDensity", airDensity);
                 }
 
                 Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;

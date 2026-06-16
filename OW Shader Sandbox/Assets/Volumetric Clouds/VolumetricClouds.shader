@@ -20,6 +20,8 @@
         _DensityMultiplier ("Density Multiplier", Float) = 1.16
         _DensityThreshold ("Density Threshold", Float) = 0.76
 
+        _AirDensity ("Air Density", Float) = 0.5
+
         _WhispyFactor ("Whispy Factor", Float) = 20.0
         _WarpStrength ("Warp Strength", Float) = 0.5
         _WarpScale ("Warp Scale", Float) = 100.0
@@ -97,6 +99,8 @@
             float _CloudScale;
             float _DensityMultiplier;
             float _DensityThreshold;
+
+            float _AirDensity;
 
             float _WhispyFactor;
             float _WarpStrength;
@@ -439,45 +443,59 @@
                     if (t > outerHit.exitDist) break;
 
                     // If we are inside the inner sphere then the density is 0 so skip
-                    bool insideInner = innerHit.didHit && (t > innerHit.entryDist && t < innerHit.exitDist);
+                    //bool insideInner = innerHit.didHit && (t > innerHit.entryDist && t < innerHit.exitDist);
 
                     // Reset the dynamic step size
                     dynamicStepSize = _StepSize;
 
-                    if (!insideInner) {
-                        float3 worldPos = ray.origin + ray.dir * t;
-                        float density = GetDensity(worldPos);
+                    float3 worldPos = ray.origin + ray.dir * t;
+                    float density = GetDensity(worldPos);
 
-                        if (density > 0.0) {
+                    if (density > 0.0) {
 
-                            float3 normSunDir = normalize(_SunDirection);
+                        float3 normSunDir = normalize(_SunDirection);
 
-                            float3 toPoint = normalize(worldPos - _Center);
-                            float distanceToCenter = length(worldPos - _Center);
+                        float3 toPoint = normalize(worldPos - _Center);
+                        float distanceToCenter = length(worldPos - _Center);
 
-                            // Adjust the dynamic step size (smaller in dense clouds)
-                            bool inShadow = dot(_SunDirection, toPoint) < 0.0;
-                            if (density > 0.05 && inShadow) dynamicStepSize = _DenseStepSize;
+                        // Adjust the dynamic step size (smaller in dense clouds)
+                        bool inShadow = dot(_SunDirection, toPoint) < 0.0;
+                        if (density > 0.05 && inShadow) dynamicStepSize = _DenseStepSize;
                             
-                            float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
-                            ambientColour += ambience * dynamicStepSize * density;
+                        float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
+                        ambientColour += ambience * dynamicStepSize * density;
 
-                            float lightTransmittance = MarchLight(worldPos);
+                        float lightTransmittance = MarchLight(worldPos);
                             
-                            // float sunDot = dot(toPoint, normSunDir);
+                        // float sunDot = dot(toPoint, normSunDir);
 
-                            // float shadow = saturate(-sunDot);
-                            // shadow = pow(shadow, _PlanetShadowSharpness);
-                            // lightTransmittance *= (1.0 - shadow * _PlanetShadowStrength);
+                        // float shadow = saturate(-sunDot);
+                        // shadow = pow(shadow, _PlanetShadowSharpness);
+                        // lightTransmittance *= (1.0 - shadow * _PlanetShadowStrength);
 
-                            float absorption = density * _LightAbsorptionThroughCloud * dynamicStepSize;
-                            float contribution = density * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
+                        float absorption = density * _LightAbsorptionThroughCloud * dynamicStepSize;
+                        float contribution = density * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
 
-                            lightEnergy += contribution;
-                            transmittance *= exp(-absorption);
+                        lightEnergy += contribution;
+                        transmittance *= exp(-absorption);
 
-                            if (transmittance < 0.01) break;
-                        }
+                        if (transmittance < 0.01) break;
+                    }
+
+                    if (_AirDensity > 0.0) {
+                        // Allow air to also transmit and recieve light (god rays)
+                        float height = distance(worldPos, _Center);
+                        float h = (height - _InnerRadius) / (_OuterRadius - _InnerRadius);
+                        float fadeFactor = smoothstep(0.6, 0.0, h);
+                        fadeFactor *= max((height - _PlanetRadius) * 0.1, 0.0);
+
+                        float cloudDensity = (1.0 / max(_DensityThreshold, 0.1)) * _DensityMultiplier;    // Default is 1 / 0.65 * 1.0 = 1.538
+                        float airDensity = max(lerp(_AirDensity, _AirDensity * 10.0, cloudDensity - 1.538), 0.0);
+                        airDensity *= fadeFactor;
+
+                        float lightTransmittance = MarchLight(worldPos);
+                        float rayContribution = airDensity * fadeFactor * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
+                        lightEnergy += rayContribution;
                     }
 
                     // Step forward (jitter prevents banding)
