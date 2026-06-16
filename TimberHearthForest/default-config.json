@@ -154,7 +154,7 @@
     "godRayStrength": {
       "title": "Volumetric Cloud God Rays",
       "type": "selector",
-      "value": "Medium",
+      "value": "None",
       "options": [
         "Strong",
         "High",

@@ -437,64 +437,72 @@
 
                 float dynamicStepSize = _StepSize;
 
+                float3 normSunDir = normalize(_SunDirection);
+                float inverseCloudRegionHeight = 1.0 / (_OuterRadius - _InnerRadius);
+
+                float baseCloudDensity = (1.0 / max(_DensityThreshold, 0.1)) * _DensityMultiplier;    // Default is 1 / 0.65 * 1.0 = 1.538
+                float baseAirDensity = max(lerp(_AirDensity * 5.0, _AirDensity * 50.0, baseCloudDensity - 1.538), 0.0);
+
                 for (int step = 0; step < numSteps; step++)
                 {
                     // Check we are still inside the outer sphere
                     if (t > outerHit.exitDist) break;
 
                     // If we are inside the inner sphere then the density is 0 so skip
-                    //bool insideInner = innerHit.didHit && (t > innerHit.entryDist && t < innerHit.exitDist);
+                    bool insideInner = innerHit.didHit && (t > innerHit.entryDist && t < innerHit.exitDist);
 
                     // Reset the dynamic step size
                     dynamicStepSize = _StepSize;
 
                     float3 worldPos = ray.origin + ray.dir * t;
-                    float density = GetDensity(worldPos);
 
-                    if (density > 0.0) {
+                    // Prevent repeated and uneccesary calculations by initialising necessary values
+                    float lightTransmittance = 0.0;
+                    float distanceToCenter = _PlanetRadius;
 
-                        float3 normSunDir = normalize(_SunDirection);
+                    if (!insideInner || _AirDensity > 0.0) {
+                        lightTransmittance = MarchLight(worldPos);
+                        distanceToCenter = length(worldPos - _Center);
+                    }
 
-                        float3 toPoint = normalize(worldPos - _Center);
-                        float distanceToCenter = length(worldPos - _Center);
+                    // Only calculate cloud light interaction in the cloud region
+                    if (!insideInner) {
 
-                        // Adjust the dynamic step size (smaller in dense clouds)
-                        bool inShadow = dot(_SunDirection, toPoint) < 0.0;
-                        if (density > 0.05 && inShadow) dynamicStepSize = _DenseStepSize;
+                        float density = GetDensity(worldPos);
+
+                        if (density > 0.0) {
+                            float3 toPoint = normalize(worldPos - _Center);
+
+                            // Adjust the dynamic step size (smaller in dense clouds)
+                            bool inShadow = dot(_SunDirection, toPoint) < 0.0;
+                            if (density > 0.05 && inShadow) dynamicStepSize = _DenseStepSize;
                             
-                        float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
-                        ambientColour += ambience * dynamicStepSize * density;
-
-                        float lightTransmittance = MarchLight(worldPos);
+                            float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
+                            ambientColour += ambience * dynamicStepSize * density;
                             
-                        // float sunDot = dot(toPoint, normSunDir);
+                            // float sunDot = dot(toPoint, normSunDir);
 
-                        // float shadow = saturate(-sunDot);
-                        // shadow = pow(shadow, _PlanetShadowSharpness);
-                        // lightTransmittance *= (1.0 - shadow * _PlanetShadowStrength);
+                            // float shadow = saturate(-sunDot);
+                            // shadow = pow(shadow, _PlanetShadowSharpness);
+                            // lightTransmittance *= (1.0 - shadow * _PlanetShadowStrength);
 
-                        float absorption = density * _LightAbsorptionThroughCloud * dynamicStepSize;
-                        float contribution = density * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
+                            float absorption = density * _LightAbsorptionThroughCloud * dynamicStepSize;
+                            float contribution = density * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
 
-                        lightEnergy += contribution;
-                        transmittance *= exp(-absorption);
+                            lightEnergy += contribution;
+                            transmittance *= exp(-absorption);
 
-                        if (transmittance < 0.01) break;
+                            if (transmittance < 0.01) break;
+                        }
                     }
 
                     if (_AirDensity > 0.0) {
                         // Allow air to also transmit and recieve light (god rays)
-                        float height = distance(worldPos, _Center);
-                        float h = (height - _InnerRadius) / (_OuterRadius - _InnerRadius);
+                        float h = (distanceToCenter - _InnerRadius) * inverseCloudRegionHeight;
                         float fadeFactor = smoothstep(0.6, 0.0, h);
-                        fadeFactor *= max((height - _PlanetRadius) * 0.1, 0.0);
+                        fadeFactor *= min(max((distanceToCenter - _PlanetRadius) * 0.2, 0.0), 1.0);
 
-                        float cloudDensity = (1.0 / max(_DensityThreshold, 0.1)) * _DensityMultiplier;    // Default is 1 / 0.65 * 1.0 = 1.538
-                        float airDensity = max(lerp(_AirDensity, _AirDensity * 10.0, cloudDensity - 1.538), 0.0);
-                        airDensity *= fadeFactor;
-
-                        float lightTransmittance = MarchLight(worldPos);
-                        float rayContribution = airDensity * fadeFactor * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
+                        float rayContribution = baseAirDensity * fadeFactor * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
                         lightEnergy += rayContribution;
                     }
 
