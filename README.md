@@ -12,8 +12,8 @@ This mod covers the barren surface of Timber Hearth with trees, grass and firefl
 
 ## Credits
 
-- [JohnCorby](https://github.com/JohnCorby) - Volumetric cloud ambient lighting, planet and moon shadows and cloud shadow implementation
-- [GameDev46](https://github.com/GameDev46) - Timber Hearth trees, grass, fireflies and base volumetric cloud implementation
+- [JohnCorby](https://github.com/JohnCorby) - Ambient lighting, planet and moon shadows and cloud shadow implementation for volumetric clouds
+- [GameDev46](https://github.com/GameDev46) - Timber Hearth trees, grass, fireflies and base volumetric cloud and god rays implementation
 
 ## Installation
 
@@ -27,19 +27,21 @@ For the easiest method of installation, use the [Outer Wilds Mod Manager](https:
 - The tree occlusion optimisation can be toggled on or off (when enabled this hides trees which are out of the camera's view helping to increase performance)
 - ```[EXPERIMENTAL]``` Volumetric clouds can be toggled on or off (when off the default plane clouds are used)
 - ```[EXPERIMENTAL]``` Volumetric cloud shadows can be enabled or disabled
-- ```[EXPERIMENTAL]``` The quality, size and sky coverage of the volumetric clouds can be adjusted
+- ```[EXPERIMENTAL]``` The quality, size, sky coverage, turbulence and god ray quality of the volumetric clouds can be adjusted
 
 ## Screenshots
 
 <table>
   <tr>
-    <th><img width="1920" alt="Looking above the trees from the surface of Timber Hearth at the sun in the sky" src="https://github.com/user-attachments/assets/0a12b387-cab2-4ffa-9352-291c2536e50b"/></th>
+    <!--<th><img width="1920" alt="Trees in front of a cloudy blue sky with the Attlerock in the background" src="https://github.com/user-attachments/assets/458e9e1a-6d8f-4d89-a407-1bd68bd3f323"/></th>-->
+    <th><img width="1920" alt="Turbulent clouds over the forest on Timber Hearth" src="https://github.com/user-attachments/assets/66b5a002-1062-4aac-97bd-6850dca20a62" /></th>
     <th><img width="1920" alt="Large white clouds in the sky above the observatory on Timber Hearth" src="https://github.com/user-attachments/assets/bfdda1f3-25f4-4c69-9b03-eeabad18d23a" /></th>
     <!--<th><img width="1920" alt="Large white clouds in the sky above the observatory on Timber Hearth" src="https://github.com/user-attachments/assets/3222c0a7-79b6-45e9-a67d-2319ff7fa65c" /></th>-->
   </tr>
   <tr>
     <!--<th><img width="1920" alt="Peaking through the thick white clouds to see the forest covered surface of Timber Hearth" src="https://github.com/user-attachments/assets/fe03eed8-c024-4bd8-b009-adb5dcda030b" /></th>-->
-    <th><img width="1920" height="1080" alt="Screenshot (948)" src="https://github.com/user-attachments/assets/0f73a4cb-58fd-4cd7-87e2-d7ada08218a4" /></th>
-    <th><img width="1920" alt="Trees in front of a cloudy blue sky with the Attlerock in the background" src="https://github.com/user-attachments/assets/458e9e1a-6d8f-4d89-a407-1bd68bd3f323"/></th>
+    <!--<th><img width="1920" height="1080" alt="Screenshot (948)" src="https://github.com/user-attachments/assets/0f73a4cb-58fd-4cd7-87e2-d7ada08218a4" /></th>-->
+    <th><img width="1920" alt="Thick clouds over Timber Hearth's Cliffs" src="https://github.com/user-attachments/assets/2fcdfd61-1a7c-444e-b70a-90d88d35ec44" /></th>
+    <th><img width="1920" alt="Looking above the trees from the surface of Timber Hearth at the sun in the sky" src="https://github.com/user-attachments/assets/0a12b387-cab2-4ffa-9352-291c2536e50b"/></th>
   </tr>
 </table>
