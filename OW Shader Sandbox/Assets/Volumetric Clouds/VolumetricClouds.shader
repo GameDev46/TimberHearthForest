@@ -458,12 +458,10 @@
 
                     // Prevent repeated and uneccesary calculations by initialising necessary values
                     float lightTransmittance = 0.0;
-                    float distanceToCenter = _PlanetRadius;
+                    bool hasLightTransmittance = false;
 
-                    if (!insideInner || _AirDensity > 0.0) {
-                        lightTransmittance = MarchLight(worldPos);
-                        distanceToCenter = length(worldPos - _Center);
-                    }
+                    float distanceToCenter = _PlanetRadius;
+                    if (!insideInner || _AirDensity > 0.0) distanceToCenter = length(worldPos - _Center);
 
                     // Only calculate cloud light interaction in the cloud region
                     if (!insideInner) {
@@ -471,14 +469,20 @@
                         float density = GetDensity(worldPos);
 
                         if (density > 0.0) {
-                            float3 toPoint = normalize(worldPos - _Center);
+                            float3 toPoint = (worldPos - _Center) / distanceToCenter;
 
                             // Adjust the dynamic step size (smaller in dense clouds)
-                            bool inShadow = dot(_SunDirection, toPoint) < 0.0;
-                            if (density > 0.05 && inShadow) dynamicStepSize = _DenseStepSize;
+                            float stepBlend = dot(normSunDir, toPoint) * 0.5 + 0.5; // [0, 1] where 0 is away from sun
+                            stepBlend *= 10.0;
+                            stepBlend = clamp(stepBlend, 0.0, 1.0);
+
+                            if (density > 0.05) dynamicStepSize = lerp(_StepSize, _DenseStepSize, stepBlend);
                             
                             float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
                             ambientColour += ambience * dynamicStepSize * density;
+
+                            lightTransmittance = MarchLight(worldPos);
+                            hasLightTransmittance = true;
                             
                             // float sunDot = dot(toPoint, normSunDir);
 
@@ -496,14 +500,20 @@
                         }
                     }
 
-                    if (_AirDensity > 0.0) {
+                    // Only calculate air transmittance when we are outside the planet
+                    if (_AirDensity > 0.0 && (distanceToCenter - _PlanetRadius) > 0.0) {
                         // Allow air to also transmit and recieve light (god rays)
                         float h = (distanceToCenter - _InnerRadius) * inverseCloudRegionHeight;
                         float fadeFactor = smoothstep(0.6, 0.0, h);
                         fadeFactor *= min(max((distanceToCenter - _PlanetRadius) * 0.2, 0.0), 1.0);
+                        
+                        if (fadeFactor > 0.001) {
+                            // Only calculate light transmittance if required
+                            if (!hasLightTransmittance) lightTransmittance = MarchLight(worldPos);
 
-                        float rayContribution = baseAirDensity * fadeFactor * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
-                        lightEnergy += rayContribution;
+                            float rayContribution = baseAirDensity * fadeFactor * transmittance * lightTransmittance * phaseVal * dynamicStepSize;
+                            lightEnergy += rayContribution;
+                        }
                     }
 
                     // Step forward (jitter prevents banding)
