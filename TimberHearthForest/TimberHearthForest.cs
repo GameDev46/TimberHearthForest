@@ -37,6 +37,7 @@ namespace TimberHearthForest
         private List<(GameObject, float)> cloudObjects = new List<(GameObject, float)>();
 
         private List<(GameObject, GameObject)> volumetricCloudObjects = new List<(GameObject, GameObject)>();
+        private float cloudShaderTimer = 0.0f;
 
         private GameObject THSatelliteObject;
 
@@ -176,6 +177,8 @@ namespace TimberHearthForest
             // Clear the stored cloud renderers
             cloudObjects = new List<(GameObject, float)>();
             volumetricCloudObjects = new List<(GameObject, GameObject)>();
+
+            cloudShaderTimer = 0.0f;
 
             AstroObject timberHearthAstroObject = Locator.GetAstroObject(AstroObject.Name.TimberHearth);
             GameObject cloudHolder = timberHearthAstroObject?.GetComponentInChildren<Sector>()?.transform.gameObject;
@@ -867,6 +870,10 @@ namespace TimberHearthForest
         {
             if (volumetricCloudObjects == null) return;
 
+            cloudShaderTimer += Time.deltaTime / 1320.0f; // 22 minutes in seconds
+            cloudShaderTimer %= 1.0f;
+            float scaledCloudShaderTimer = cloudShaderTimer * 3300.0f;
+
             Transform sunTransform = Locator.GetSunTransform();
             
             var sunLight = Locator.GetSunController()._sunLight._sunLight;
@@ -899,6 +906,8 @@ namespace TimberHearthForest
                         mat.SetVector("_SunColor", sunLight.color * sunLight.intensity);
                         mat.SetFloat("_AmbientStrength", thAmbient / 50);
                         mat.SetVector("_MoonPosition", moonPos);
+
+                        mat.SetFloat("_CloudTime", scaledCloudShaderTimer);
                     }
 
                     // Get the cloud's shadow material (if one exists)
@@ -908,6 +917,8 @@ namespace TimberHearthForest
                     {
                         shadowMat.SetVector("_Center", CloudPosition);
                         shadowMat.SetVector("_SunDirection", sunDirection);
+
+                        shadowMat.SetFloat("_CloudTime", scaledCloudShaderTimer);
                     }
                 }
                 catch

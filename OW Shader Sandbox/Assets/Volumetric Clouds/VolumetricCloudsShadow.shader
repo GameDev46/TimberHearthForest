@@ -8,6 +8,8 @@
         _ErosionStrength ("Erosion Strength", Float) = 0.5
         _BlueNoiseStrength ("Blue Noise Strength", Range(0, 1)) = 0.3
 
+        _CloudTime ("Cloud Time", Float) = 0.0
+
         _OuterRadius ("Outer Radius", Float) = 80
         _InnerRadius ("Inner Radius", Float) = 10
         
@@ -63,6 +65,8 @@
 
             float _ErosionStrength;
             float _BlueNoiseStrength;
+
+            float _CloudTime;
 
             float _OuterRadius;
             float _InnerRadius;
@@ -137,8 +141,9 @@
             {
                 // Sample noise
                 float3 noiseSamplePos = (worldPos - _Center) * _CloudScale + _Offset;
+                float3 cloudTimeOffset = float3(_CloudTime, _CloudTime * 0.9839, _CloudTime * -1.18383);
 
-                float4 warpNoise = UNITY_SAMPLE_TEX3D_LOD(_CloudNoiseTex, frac(noiseSamplePos * 0.00001 * _WarpScale), 0);
+                float4 warpNoise = UNITY_SAMPLE_TEX3D_LOD(_CloudNoiseTex, frac((noiseSamplePos + cloudTimeOffset) * 0.00001 * _WarpScale), 0);
                 float3 distortOffset = float3(warpNoise.r - 0.5, warpNoise.g - 0.5, warpNoise.b - 0.5) * _CloudScale * _WarpStrength;
 
                 float2 noiseData = Noise(noiseSamplePos + distortOffset);

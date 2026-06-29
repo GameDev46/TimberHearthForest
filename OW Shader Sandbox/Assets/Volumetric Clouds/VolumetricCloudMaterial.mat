@@ -43,6 +43,7 @@ Material:
     - _AmbientStrength: 0.03
     - _BlueNoiseStrength: 1
     - _CloudScale: 1.5
+    - _CloudTime: 0
     - _DarknessThreshold: 0.2
     - _DenseStepSize: 4
     - _Density: 1
@@ -67,6 +68,7 @@ Material:
     - _PlanetShadowStrength: 0
     - _StepSize: 10
     - _SunStepSize: 20
+    - _Time: 0
     - _TopBottomFadeFactor: 0.5
     - _WarpScale: 80
     - _WarpStrength: 150

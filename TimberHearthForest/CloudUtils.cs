@@ -230,6 +230,8 @@ namespace TimberHearthForest
             mat.SetFloat("_ErosionStrength", 0.3f);
             mat.SetFloat("_BlueNoiseStrength", 1.0f); // Dithering power
 
+            mat.SetFloat("_CloudTime", 0.0f);
+
             mat.SetFloat("_OuterRadius", cloudOuterRadius);
             mat.SetFloat("_InnerRadius", cloudInnerRadius);
             mat.SetFloat("_PlanetRadius", 254); // th radius
@@ -287,6 +289,8 @@ namespace TimberHearthForest
             shadowMat.SetFloat("_ErosionStrength", 0.3f);
             shadowMat.SetFloat("_BlueNoiseStrength", 0.2f); // Dithering power
             shadowMat.SetFloat("_BlueNoiseScale", 15.0f);
+
+            shadowMat.SetFloat("_CloudTime", 0.0f);
 
             shadowMat.SetFloat("_OuterRadius", cloudOuterRadius);
             shadowMat.SetFloat("_InnerRadius", cloudInnerRadius);

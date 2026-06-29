@@ -36,6 +36,7 @@ Material:
     - _BlueNoiseScale: 10
     - _BlueNoiseStrength: 1
     - _CloudScale: 1.5
+    - _CloudTime: 0
     - _DenseStepSize: 4
     - _DensityMultiplier: 1
     - _DensityThreshold: 0.65
