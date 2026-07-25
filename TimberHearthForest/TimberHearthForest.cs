@@ -271,46 +271,46 @@ namespace TimberHearthForest
                     break;
             }
 
-            float sizeMultiplier = 1.5f;
+            float sizeMultiplier = 1.3f;
 
             switch (size)
             {
-                case "Large":   sizeMultiplier = 1.0f; break;
-                case "Medium":  sizeMultiplier = 1.5f; break;
-                case "Small":   sizeMultiplier = 2.0f; break;
+                case "Large":   sizeMultiplier = 0.8f; break;
+                case "Medium":  sizeMultiplier = 1.3f; break;
+                case "Small":   sizeMultiplier = 1.8f; break;
                 default:
                     ModHelper.Console.WriteLine($"Unknown volumetric cloud size setting: {size}", MessageType.Error);
                     break;
             }
 
-            float coverageThreshold = 0.65f;
+            float coverageThreshold = 0.8f;
 
             switch (coverage)
             {
-                case "Full":    coverageThreshold = 0.45f; break;
-                case "High":    coverageThreshold = 0.55f; break;
-                case "Medium":  coverageThreshold = 0.65f; break;
-                case "Low":     coverageThreshold = 0.72f; break;
+                case "Full":    coverageThreshold = 0.5f; break;
+                case "High":    coverageThreshold = 0.73f; break;
+                case "Medium":  coverageThreshold = 0.8f; break;
+                case "Low":     coverageThreshold = 0.9f; break;
                 default:
                     ModHelper.Console.WriteLine($"Unknown volumetric cloud coverage setting: {coverage}", MessageType.Error);
                     break;
             }
 
-            float turbulenceStrength = 140.0f;
+            float turbulenceStrength = 50.0f;
 
             switch (turbulence)
             {
-                case "Intense": turbulenceStrength = 350.0f; break;
-                case "High": turbulenceStrength = 200.0f; break;
-                case "Medium": turbulenceStrength = 140.0f; break;
-                case "Low": turbulenceStrength = 60.0f; break;
+                case "Intense": turbulenceStrength = 200.0f; break;
+                case "High": turbulenceStrength = 100.0f; break;
+                case "Medium": turbulenceStrength = 50.0f; break;
+                case "Low": turbulenceStrength = 25.0f; break;
                 case "None": turbulenceStrength = 0.0f; break;
                 default:
                     ModHelper.Console.WriteLine($"Unknown volumetric cloud turbulence setting: {turbulence}", MessageType.Error);
                     break;
             }
 
-            float airDensity = 0.001f;
+            float airDensity = 0.0f;
 
             switch (godRayStrength)
             {
@@ -872,7 +872,7 @@ namespace TimberHearthForest
 
             cloudShaderTimer += Time.deltaTime / 1320.0f; // 22 minutes in seconds
             cloudShaderTimer %= 1.0f;
-            float scaledCloudShaderTimer = cloudShaderTimer * 3300.0f;
+            float scaledCloudShaderTimer = cloudShaderTimer * 1100.0f;
 
             Transform sunTransform = Locator.GetSunTransform();
             
@@ -903,7 +903,11 @@ namespace TimberHearthForest
                         mat.SetVector("_SunDirection", sunDirection);
                         mat.SetVector("_MoonPosition", moonPos);
 
-                        mat.SetVector("_SunColor", sunLight.color * sunLight.intensity);
+                        Vector4 sunlightColour = new Vector4(sunLight.color.r, sunLight.color.g, sunLight.color.b, 1.0f);
+                        sunlightColour = (sunlightColour + Vector4.one) * 0.5f; // Shift the sun colour more towards white
+                        sunlightColour *= sunLight.intensity;
+
+                        mat.SetVector("_SunColor", sunlightColour);
                         mat.SetFloat("_AmbientStrength", thAmbient / 50);
                         mat.SetVector("_MoonPosition", moonPos);
 

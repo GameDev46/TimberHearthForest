@@ -874,10 +874,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e4b4fcb4e972012418c9a2f9d9714db5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  shadowInjector: {fileID: 2089678199}
-  targetLight: {fileID: 705507994}
-  godRayMaterial: {fileID: 2100000, guid: 831dbd80f9c4a2d42ab149677c2449b2, type: 2}
-  cam: {fileID: 963194227}
 --- !u!1 &1258861404
 GameObject:
   m_ObjectHideFlags: 0

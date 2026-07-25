@@ -21,6 +21,7 @@
         _CloudScale ("Cloud Scale", Float) = 0.62
         _DensityMultiplier ("Density Multiplier", Float) = 1.16
         _DensityThreshold ("Density Threshold", Float) = 0.76
+        _CloudSteepness ("Cloud Steepness", Float) = 50.0
 
         _AirDensity ("Air Density", Float) = 0.5
 
@@ -103,6 +104,7 @@
             float _CloudScale;
             float _DensityMultiplier;
             float _DensityThreshold;
+            float _CloudSteepness;
 
             float _AirDensity;
 
@@ -236,21 +238,41 @@
                 return float2(density, detail);
             }
 
+            float Sigmoid(float x, float steepness, float threshold)
+            {
+                return 1.0 / (1.0 + exp(-steepness * (x - threshold)));
+            }
+
             float GetDensity(float3 worldPos)
             {
                 // Sample noise
                 float3 noiseSamplePos = (worldPos - _Center) * _CloudScale + _Offset;
-                float3 cloudTimeOffset = float3(_CloudTime, _CloudTime * 0.9839, _CloudTime * -1.18383);
 
-                float4 warpNoise = UNITY_SAMPLE_TEX3D_LOD(_CloudNoiseTex, frac((noiseSamplePos + cloudTimeOffset) * 0.00001 * _WarpScale), 0);
+                // Rotate the clouds around the planet
+                float lengthToAngle = 10.0 / _OuterRadius;
+
+                float sinAlpha = sin(_CloudTime * lengthToAngle);
+                float cosAlpha = cos(_CloudTime * lengthToAngle);
+
+                float3x3 yRotationMatrix = float3x3(
+                    cosAlpha, 0, sinAlpha,
+                    0, 1, 0,
+                    -sinAlpha, 0, cosAlpha
+                );
+
+                float3 rotatedNoiseSamplePos = mul(yRotationMatrix, noiseSamplePos);
+                float3 movedNoiseSamplePos = noiseSamplePos + float3(sinAlpha, 0, cosAlpha) * 10.0;
+
+                float4 warpNoise = UNITY_SAMPLE_TEX3D_LOD(_CloudNoiseTex, frac(movedNoiseSamplePos * 0.00001 * _WarpScale), 0);
                 float3 distortOffset = float3(warpNoise.r - 0.5, warpNoise.g - 0.5, warpNoise.b - 0.5) * _CloudScale * _WarpStrength;
 
-                float2 noiseData = Noise(noiseSamplePos + distortOffset);
+                float2 noiseData = Noise(rotatedNoiseSamplePos + distortOffset);
 
                 float density = noiseData.x;
                 float detail = noiseData.y;
 
-                density = smoothstep(_DensityThreshold, 1.0, density * _DensityMultiplier);
+                //density = smoothstep(_DensityThreshold, 1.0, density * _DensityMultiplier);
+                density = Sigmoid(density, _CloudSteepness, _DensityThreshold);
 
                 // Fade the noise towards the edges of the inner and out sphere
                 float height = distance(worldPos, _Center);
@@ -446,7 +468,7 @@
                 float inverseCloudRegionHeight = 1.0 / (_OuterRadius - _InnerRadius);
 
                 float baseCloudDensity = (1.0 / max(_DensityThreshold, 0.1)) * _DensityMultiplier;    // Default is 1 / 0.65 * 1.0 = 1.538
-                float baseAirDensity = max(lerp(_AirDensity * 5.0, _AirDensity * 50.0, baseCloudDensity - 1.538), 0.0);
+                float baseAirDensity = _AirDensity * 10.0;
 
                 for (int step = 0; step < numSteps; step++)
                 {
@@ -501,7 +523,7 @@
                             lightEnergy += contribution;
                             transmittance *= exp(-absorption);
 
-                            if (transmittance < 0.01) break;
+                            if (transmittance < 0.01) { transmittance = 0.0; break; }
                         }
                     }
 

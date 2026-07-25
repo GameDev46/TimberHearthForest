@@ -35,11 +35,12 @@ Material:
     - _AmbientStrength: 1
     - _BlueNoiseScale: 10
     - _BlueNoiseStrength: 1
-    - _CloudScale: 1.5
+    - _CloudScale: 1.3
+    - _CloudSteepness: 50
     - _CloudTime: 0
     - _DenseStepSize: 4
     - _DensityMultiplier: 1
-    - _DensityThreshold: 0.65
+    - _DensityThreshold: 0.8
     - _ErosionStrength: 0.3
     - _ForwardScatteringBias: 0.2
     - _InnerRadius: 285
@@ -57,9 +58,9 @@ Material:
     - _StepSize: 10
     - _SunStepSize: 20
     - _TopBottomFadeFactor: 0.5
-    - _WarpScale: 80
-    - _WarpStrength: 150
-    - _WhispyFactor: 100
+    - _WarpScale: 120
+    - _WarpStrength: 50
+    - _WhispyFactor: 30
     m_Colors:
     - _Center: {r: 0, g: 0, b: 0, a: 0}
     - _MoonPosition: {r: 0, g: 0, b: 0, a: 0}

@@ -36,20 +36,21 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     m_Floats:
-    - _AirDensity: 0.001
+    - _AirDensity: 0.0002
     - _AmbienceSubSampleCount: 1
     - _AmbientFalloff: 0.1
     - _AmbientMixFactor: 0.2
     - _AmbientStrength: 0.03
     - _BlueNoiseStrength: 1
-    - _CloudScale: 1.5
+    - _CloudScale: 1.3
+    - _CloudSteepness: 50
     - _CloudTime: 0
     - _DarknessThreshold: 0.2
     - _DenseStepSize: 4
     - _Density: 1
     - _DensityMultiplier: 1
-    - _DensityThreshold: 0.65
-    - _ErosionStrength: 0.3
+    - _DensityThreshold: 0.8
+    - _ErosionStrength: 0
     - _ForwardScatteringBias: 0.2
     - _InnerRadius: 285
     - _LightAbsorptionThroughCloud: 0.8
@@ -62,17 +63,16 @@ Material:
     - _OuterRadius: 370
     - _PhaseGB: -0.2
     - _PhaseGF: 0.5
-    - _PhaseIntensity: 4
+    - _PhaseIntensity: 3
     - _PlanetRadius: 254
     - _PlanetShadowSharpness: 1
     - _PlanetShadowStrength: 0
     - _StepSize: 10
     - _SunStepSize: 20
-    - _Time: 0
     - _TopBottomFadeFactor: 0.5
-    - _WarpScale: 80
-    - _WarpStrength: 150
-    - _WhispyFactor: 100
+    - _WarpScale: 120
+    - _WarpStrength: 50
+    - _WhispyFactor: 30
     m_Colors:
     - _AmbientColor: {r: 0.21698111, g: 0.21698111, b: 0.21698111, a: 1}
     - _Center: {r: 0, g: 0, b: 0, a: 0}

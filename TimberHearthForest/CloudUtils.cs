@@ -241,18 +241,18 @@ namespace TimberHearthForest
             mat.SetFloat("_SunStepSize", 20.0f);
             mat.SetFloat("_DenseStepSize", 4.0f); // The step size in the denser dark clouds (where banding is most prevalent)
 
-            mat.SetFloat("_CloudScale", 1.5f);
+            mat.SetFloat("_CloudScale", 1.3f);
             mat.SetFloat("_DensityMultiplier", 1.0f);
-            mat.SetFloat("_DensityThreshold", 0.65f);
+            mat.SetFloat("_DensityThreshold", 0.8f);
 
             mat.SetFloat("_LightAbsorptionThroughCloud", 0.8f);
             mat.SetFloat("_LightAbsorptionTowardsSun", 0.4f);
             // mat.SetFloat("_DarknessThreshold", 0.2f);
 
-            mat.SetFloat("_PhaseIntensity", 4.0f);
-            mat.SetFloat("_ForwardScatteringBias", 0.2f);
+            mat.SetFloat("_PhaseIntensity", 3.0f);
+            //mat.SetFloat("_ForwardScatteringBias", 0.2f);
 
-            mat.SetFloat("_WarpStrength", 140.0f);
+            mat.SetFloat("_WarpStrength", 50.0f);
             mat.SetFloat("_AirDensity", 0.001f);
 
             mat.SetVector("_SunDirection", new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
@@ -295,11 +295,11 @@ namespace TimberHearthForest
             shadowMat.SetFloat("_OuterRadius", cloudOuterRadius);
             shadowMat.SetFloat("_InnerRadius", cloudInnerRadius);
 
-            shadowMat.SetFloat("_CloudScale", 1.5f);
+            shadowMat.SetFloat("_CloudScale", 1.3f);
             shadowMat.SetFloat("_DensityMultiplier", 1.0f);
-            shadowMat.SetFloat("_DensityThreshold", 0.65f);
+            shadowMat.SetFloat("_DensityThreshold", 0.8f);
 
-            shadowMat.SetFloat("_WarpStrength", 140.0f);
+            shadowMat.SetFloat("_WarpStrength", 50.0f);
 
             shadowMat.SetVector("_SunDirection", new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
 
