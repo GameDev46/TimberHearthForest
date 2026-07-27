@@ -103,6 +103,16 @@
       ],
       "tooltip": "Toggles on/off volumetric cloud shadows (experimental)"
     },
+    "dynamicWeather": {
+      "title": "Dynamic Weather",
+      "type": "selector",
+      "value": "Enabled",
+      "options": [
+        "Enabled",
+        "Disabled"
+      ],
+      "tooltip": "Toggles on/off whether the clouds will change thickness, size and shape over time"
+    },
     "volumetricCloudQuality": {
       "title": "Volumetric Cloud Quality",
       "type": "selector",

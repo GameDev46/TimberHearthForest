@@ -18,6 +18,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
 using UnityEngine.UIElements;
+using static UnityEngine.ParticleSystem;
 
 namespace TimberHearthForest
 {
@@ -38,6 +39,16 @@ namespace TimberHearthForest
 
         private List<(GameObject, GameObject)> volumetricCloudObjects = new List<(GameObject, GameObject)>();
         private float cloudShaderTimer = 0.0f;
+
+        private bool dynamicWeatherEnabled = true;
+        private float dynamicWeatherSeed = UnityEngine.Random.Range(0f, 1000f);
+        private float dynamicCloudCoverageThreshold = 0.8f;
+        private float dynamicCloudSize = 1.3f;
+        private float dynamicCloudTurbulenceStrength = 50.0f;
+
+        private float rainDensityThreshold = 0.8f;
+        private float rainDensityStopThreshold = 0.3f;
+        private bool isRaining = false;
 
         private GameObject THSatelliteObject;
 
@@ -129,6 +140,8 @@ namespace TimberHearthForest
             string volumetricCloudTurbulence = config.GetSettingsValue<string>("volumetricCloudTurbulence");
             string volumetricCloudGodRayStrength = config.GetSettingsValue<string>("godRayStrength");
 
+            bool dynamicWeatherEnabled = config.GetSettingsValue<string>("dynamicWeather") == "Enabled";
+
             UpdateVolumetricCloudSettings(
                 volumetricCloudsEnabled,
                 volumetricCloudShadowsEnabled,
@@ -180,6 +193,8 @@ namespace TimberHearthForest
 
             cloudShaderTimer = 0.0f;
 
+            dynamicWeatherSeed = UnityEngine.Random.Range(0f, 1000f);
+
             AstroObject timberHearthAstroObject = Locator.GetAstroObject(AstroObject.Name.TimberHearth);
             GameObject cloudHolder = timberHearthAstroObject?.GetComponentInChildren<Sector>()?.transform.gameObject;
 
@@ -214,6 +229,8 @@ namespace TimberHearthForest
             string volumetricCloudCoverage = ModHelper.Config.GetSettingsValue<string>("volumetricCloudCoverage");
             string volumetricCloudTurbulence = ModHelper.Config.GetSettingsValue<string>("volumetricCloudTurbulence");
             string volumetricCloudGodRayStrength = ModHelper.Config.GetSettingsValue<string>("godRayStrength");
+
+            bool dynamicWeatherEnabled = ModHelper.Config.GetSettingsValue<string>("dynamicWeather") == "Enabled";
 
             UpdateVolumetricCloudSettings(
                 volumetricCloudsEnabled,
@@ -324,6 +341,11 @@ namespace TimberHearthForest
                     ModHelper.Console.WriteLine($"Unknown volumetric cloud god ray strength setting: {godRayStrength}", MessageType.Error);
                     break;
             }
+
+            // Update the global volumetric cloud settings
+            dynamicCloudCoverageThreshold = coverageThreshold;
+            dynamicCloudSize = sizeMultiplier;
+            dynamicCloudTurbulenceStrength = turbulenceStrength;
 
             foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
             {
@@ -869,16 +891,55 @@ namespace TimberHearthForest
         private void UpdateVolumetricClouds()
         {
             if (volumetricCloudObjects == null) return;
+            if (volumetricCloudObjects.Count == 0) return;
 
-            cloudShaderTimer += Time.deltaTime / 1320.0f; // 22 minutes in seconds
-            cloudShaderTimer %= 1.0f;
+            // Calculate the cloud movement timer
+            cloudShaderTimer += Time.deltaTime / 1320.0f; // 22 minutes in seconds = 1320
+            cloudShaderTimer %= 2.0f; // Wraps the timer to prevent any unexpected behaviour (mainly a safety feature, shouldn't be needed)
             float scaledCloudShaderTimer = cloudShaderTimer * 1100.0f;
+
+            // If dynamic weather is enabled, then update the cloud shader with the current weather values
+            if (dynamicWeatherEnabled)
+            {
+                float scaledWeatherTimer = scaledCloudShaderTimer * 0.01f;
+
+                dynamicCloudCoverageThreshold = Mathf.PerlinNoise(dynamicWeatherSeed * 2.494f + scaledWeatherTimer, 0.0f) * 0.5f + 0.5f;
+                dynamicCloudTurbulenceStrength = Mathf.PerlinNoise(dynamicWeatherSeed * 0.5494f + scaledWeatherTimer * 0.7f, 0.0f) * 80.0f;
+                dynamicCloudSize = Mathf.PerlinNoise(dynamicWeatherSeed + scaledWeatherTimer * 0.3f, 0.0f) + 0.5f;
+
+                // Thick clouds means more rain, so we can use the cloud coverage threshold to determine the rain intensity
+                // dynamicCloudCoverageThreshold can vary between 0.5f and 1.0f
+                float rainDensity = Mathf.Clamp01(1.0f - dynamicCloudCoverageThreshold) * 2.0f;
+
+                // If the rain density goes above the threshold then it rains
+                if (rainDensity > rainDensityThreshold)
+                {
+                    isRaining = true;
+                    rainDensityThreshold = UnityEngine.Random.Range(0.75f, 0.99f);
+                }
+
+                // Check to stop raining
+                if (isRaining && rainDensity <= rainDensityStopThreshold)
+                {
+                    isRaining = false;
+                    rainDensityStopThreshold = UnityEngine.Random.Range(0.3f, 0.5f);
+                }
+
+                // Clamp the values to ensure they are within the expected range
+                dynamicCloudCoverageThreshold = Mathf.Clamp(dynamicCloudCoverageThreshold, 0.5f, 1.0f);
+                dynamicCloudTurbulenceStrength = Mathf.Clamp(dynamicCloudTurbulenceStrength, 0.0f, 80.0f);
+                dynamicCloudSize = Mathf.Clamp(dynamicCloudSize, 0.5f, 1.5f);
+            }
 
             Transform sunTransform = Locator.GetSunTransform();
             
             var sunLight = Locator.GetSunController()._sunLight._sunLight;
             var moonPos = Locator.GetAstroObject(AstroObject.Name.TimberHearth)._moon.transform.position;
             var thAmbient = Locator.GetAstroObject(AstroObject.Name.TimberHearth).transform.Find("AmbientLight_TH").GetComponent<Light>().intensity;
+
+            Vector4 sunlightColour = new Vector4(sunLight.color.r, sunLight.color.g, sunLight.color.b, 1.0f);
+            sunlightColour = (sunlightColour + Vector4.one) * 0.5f; // Shift the sun colour more towards white
+            sunlightColour *= sunLight.intensity;
 
             for (int i = 0; i < volumetricCloudObjects.Count; i++)
             {
@@ -903,15 +964,15 @@ namespace TimberHearthForest
                         mat.SetVector("_SunDirection", sunDirection);
                         mat.SetVector("_MoonPosition", moonPos);
 
-                        Vector4 sunlightColour = new Vector4(sunLight.color.r, sunLight.color.g, sunLight.color.b, 1.0f);
-                        sunlightColour = (sunlightColour + Vector4.one) * 0.5f; // Shift the sun colour more towards white
-                        sunlightColour *= sunLight.intensity;
-
                         mat.SetVector("_SunColor", sunlightColour);
                         mat.SetFloat("_AmbientStrength", thAmbient / 50);
                         mat.SetVector("_MoonPosition", moonPos);
 
                         mat.SetFloat("_CloudTime", scaledCloudShaderTimer);
+
+                        mat.SetFloat("_CloudScale", dynamicCloudSize);
+                        mat.SetFloat("_DensityThreshold", dynamicCloudCoverageThreshold);
+                        mat.SetFloat("_WarpStrength", dynamicCloudTurbulenceStrength);
                     }
 
                     // Get the cloud's shadow material (if one exists)
@@ -923,6 +984,10 @@ namespace TimberHearthForest
                         shadowMat.SetVector("_SunDirection", sunDirection);
 
                         shadowMat.SetFloat("_CloudTime", scaledCloudShaderTimer);
+
+                        shadowMat.SetFloat("_CloudScale", dynamicCloudSize);
+                        shadowMat.SetFloat("_DensityThreshold", dynamicCloudCoverageThreshold);
+                        shadowMat.SetFloat("_WarpStrength", dynamicCloudTurbulenceStrength);
                     }
                 }
                 catch
