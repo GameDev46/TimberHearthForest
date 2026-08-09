@@ -503,7 +503,7 @@
                             stepBlend *= 10.0;
                             stepBlend = clamp(stepBlend, 0.0, 1.0);
 
-                            if (density > 0.05) dynamicStepSize = lerp(_StepSize, _DenseStepSize, stepBlend);
+                            if (density > 0.01) dynamicStepSize = lerp(_StepSize, _DenseStepSize, stepBlend);
                             
                             float3 ambience = GetAmbience(distanceToCenter, toPoint, normSunDir);
                             ambientColour += ambience * dynamicStepSize * density;

@@ -41,7 +41,7 @@ Material:
     - _DenseStepSize: 4
     - _DensityMultiplier: 1
     - _DensityThreshold: 0.8
-    - _ErosionStrength: 0.3
+    - _ErosionStrength: 0
     - _ForwardScatteringBias: 0.2
     - _InnerRadius: 285
     - _LightAbsorptionThroughCloud: 0.8

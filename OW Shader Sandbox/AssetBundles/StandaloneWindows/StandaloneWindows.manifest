@@ -1,5 +1,5 @@
 ManifestFileVersion: 0
-CRC: 3809083155
+CRC: 2161226502
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
@@ -10,4 +10,7 @@ AssetBundleManifest:
       Dependencies: {}
     Info_2:
       Name: volumetricclouds
+      Dependencies: {}
+    Info_3:
+      Name: landingpad
       Dependencies: {}

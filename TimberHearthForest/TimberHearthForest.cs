@@ -570,6 +570,9 @@ namespace TimberHearthForest
             // Update the firefly density
             string fireflyDensityPreset = ModHelper.Config.GetSettingsValue<string>("fireflyDensity");
             UpdatePropDensity(fireflyDensityPreset, "firefly");
+
+            // Add the landing site to the large geyser
+            SpawnLandingPad();
         }
 
         private void OnEnterTimberHearth(SectorDetector detector)
@@ -586,6 +589,16 @@ namespace TimberHearthForest
             if (quantumMoonSector.ContainsOccupant(DynamicOccupant.Player)) return;
             // Load all the asset bundles
             foreach (string bundle in assetBundles) StreamingManager.LoadStreamingAssets(bundle);
+        }
+
+        void SpawnLandingPad()
+        {
+            LandingPadUtils.SetModDirectoryPath(ModHelper.Manifest.ModFolderPath);
+            LandingPadUtils.SetModConsole(ModHelper.Console);
+
+            LandingPadUtils.LoadLandingPadAssetBundle();
+
+            LandingPadUtils.SpawnLandingPad(timberHearthSector.transform);
         }
 
         void AddFireflies(Transform treeTransform, Transform fireflyHolder)
@@ -909,7 +922,7 @@ namespace TimberHearthForest
 
                 // Thick clouds means more rain, so we can use the cloud coverage threshold to determine the rain intensity
                 // dynamicCloudCoverageThreshold can vary between 0.5f and 1.0f
-                float rainDensity = Mathf.Clamp01(1.0f - dynamicCloudCoverageThreshold) * 2.0f;
+                /*float rainDensity = Mathf.Clamp01(1.0f - dynamicCloudCoverageThreshold) * 2.0f;
 
                 // If the rain density goes above the threshold then it rains
                 if (rainDensity > rainDensityThreshold)
@@ -923,7 +936,7 @@ namespace TimberHearthForest
                 {
                     isRaining = false;
                     rainDensityStopThreshold = UnityEngine.Random.Range(0.3f, 0.5f);
-                }
+                }*/
 
                 // Clamp the values to ensure they are within the expected range
                 dynamicCloudCoverageThreshold = Mathf.Clamp(dynamicCloudCoverageThreshold, 0.5f, 1.0f);
