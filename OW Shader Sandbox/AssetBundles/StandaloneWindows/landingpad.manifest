@@ -1,9 +1,9 @@
 ManifestFileVersion: 0
-CRC: 319955643
+CRC: 2223481096
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: dba151f0ffc1a5e29c35181f28a10581
+    Hash: 5425798933f995cb4b9d293f9af72a93
   TypeTreeHash:
     serializedVersion: 2
     Hash: 3f116ca3ddf6b0504868fe375c27d9d6
@@ -37,10 +37,14 @@ SerializeReferenceClassIdentifiers: []
 Assets:
 - Assets/Landing Pad/Metal.mat
 - Assets/Landing Pad/dirtDisplacement.png
-- Assets/Landing Pad/Wood.mat
+- Assets/Landing Pad/Wood Logs.mat
 - Assets/Landing Pad/Glow.mat
+- Assets/Landing Pad/dirtNormal.png
+- Assets/Landing Pad/Wood Beams.mat
 - Assets/Landing Pad/Landing Pad Model.blend
 - Assets/Landing Pad/Wood Plank.mat
 - Assets/Landing Pad/Landing Pad.prefab
+- Assets/Landing Pad/NormalMap (3).png
 - Assets/Landing Pad/Dark Green Plastic.mat
+- Assets/Landing Pad/NormalMap (1).png
 Dependencies: []

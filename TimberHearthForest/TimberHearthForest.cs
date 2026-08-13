@@ -131,6 +131,10 @@ namespace TimberHearthForest
             string fireflyDensityPreset = config.GetSettingsValue<string>("fireflyDensity");
             UpdatePropDensity(fireflyDensityPreset, "firefly");
 
+            // Update whether the geyser landing pad is enabled
+            bool geyserLandingPadEnabled = config.GetSettingsValue<string>("geyserLandingPadEnabled") == "Enabled";
+            LandingPadUtils.ToggleLandingPadVisibility(geyserLandingPadEnabled);
+
             // Update whether volumetric clouds are enabled
             bool volumetricCloudsEnabled = config.GetSettingsValue<string>("volumetricCloudsEnabled") == "Enabled";
             bool volumetricCloudShadowsEnabled = config.GetSettingsValue<string>("volumetricCloudShadowsEnabled") == "Enabled";
@@ -140,7 +144,7 @@ namespace TimberHearthForest
             string volumetricCloudTurbulence = config.GetSettingsValue<string>("volumetricCloudTurbulence");
             string volumetricCloudGodRayStrength = config.GetSettingsValue<string>("godRayStrength");
 
-            bool dynamicWeatherEnabled = config.GetSettingsValue<string>("dynamicWeather") == "Enabled";
+            dynamicWeatherEnabled = config.GetSettingsValue<string>("dynamicWeather") == "Enabled";
 
             UpdateVolumetricCloudSettings(
                 volumetricCloudsEnabled,
@@ -230,7 +234,7 @@ namespace TimberHearthForest
             string volumetricCloudTurbulence = ModHelper.Config.GetSettingsValue<string>("volumetricCloudTurbulence");
             string volumetricCloudGodRayStrength = ModHelper.Config.GetSettingsValue<string>("godRayStrength");
 
-            bool dynamicWeatherEnabled = ModHelper.Config.GetSettingsValue<string>("dynamicWeather") == "Enabled";
+            dynamicWeatherEnabled = ModHelper.Config.GetSettingsValue<string>("dynamicWeather") == "Enabled";
 
             UpdateVolumetricCloudSettings(
                 volumetricCloudsEnabled,
@@ -596,9 +600,15 @@ namespace TimberHearthForest
             LandingPadUtils.SetModDirectoryPath(ModHelper.Manifest.ModFolderPath);
             LandingPadUtils.SetModConsole(ModHelper.Console);
 
+            // Load the landing pad model from the asset bundle
             LandingPadUtils.LoadLandingPadAssetBundle();
 
+            // Spawn the landing pad
             LandingPadUtils.SpawnLandingPad(timberHearthSector.transform);
+
+            // Update whether the geyser landing pad is enabled
+            bool geyserLandingPadEnabled = ModHelper.Config.GetSettingsValue<string>("geyserLandingPadEnabled") == "Enabled";
+            LandingPadUtils.ToggleLandingPadVisibility(geyserLandingPadEnabled);
         }
 
         void AddFireflies(Transform treeTransform, Transform fireflyHolder)

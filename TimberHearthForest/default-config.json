@@ -175,6 +175,19 @@
       ],
       "tooltip": "Controls the strength of the god rays for the volumetric clouds"
     },
+    "landingPadSeparator": {
+      "type": "separator"
+    },
+    "geyserLandingPadEnabled": {
+      "title": "Geyser Landing Pad",
+      "type": "selector",
+      "value": "Enabled",
+      "options": [
+        "Enabled",
+        "Disabled"
+      ],
+      "tooltip": "When enabled, a landing pad is added to the side of the giant geyser on Timber Hearth"
+    },
     "optimisationSeparator": {
       "type": "separator"
     },

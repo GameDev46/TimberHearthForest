@@ -17,6 +17,8 @@ namespace TimberHearthForest
         private static AssetBundle landingPadBundle;
         private static GameObject landingPadPrefab;
 
+        private static GameObject landingPadInstance;
+
         public static void SetModDirectoryPath(string dirPath)
         {
             modFolderPath = dirPath;
@@ -73,10 +75,15 @@ namespace TimberHearthForest
 
         public static void SpawnLandingPad(Transform planetSector)
         {
-            GameObject landingPadInstance = GameObject.Instantiate(landingPadPrefab, planetSector);
+            landingPadInstance = GameObject.Instantiate(landingPadPrefab, planetSector);
             landingPadInstance.transform.localPosition = new Vector3(-119.0f, 85.0f, -248.3f);
             landingPadInstance .transform.localRotation = Quaternion.Euler(15.0f, 294.0f, 74.0f);
             landingPadInstance.transform.localScale = Vector3.one;
+        }
+
+        public static void ToggleLandingPadVisibility(bool isVisible)
+        {
+            if (landingPadInstance != null) landingPadInstance.SetActive(isVisible);
         }
     }
 }
