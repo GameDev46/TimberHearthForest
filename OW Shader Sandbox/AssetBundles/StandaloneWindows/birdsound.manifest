@@ -1,0 +1,26 @@
+ManifestFileVersion: 0
+CRC: 2605219092
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 976de2e4b509615015d27457c8234211
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 8de51064219e4f947fb7fea9d09a4e34
+HashAppended: 0
+ClassTypes:
+- Class: 1
+  Script: {instanceID: 0}
+- Class: 4
+  Script: {instanceID: 0}
+- Class: 82
+  Script: {instanceID: 0}
+- Class: 83
+  Script: {instanceID: 0}
+SerializeReferenceClassIdentifiers: []
+Assets:
+- Assets/Sound/birdSound2.wav
+- Assets/Sound/Bird Song Manager.prefab
+- Assets/Sound/birdSound1.wav
+- Assets/Sound/birdSound3.wav
+Dependencies: []

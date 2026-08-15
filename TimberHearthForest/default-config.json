@@ -80,6 +80,17 @@
       ],
       "tooltip": "Controls the amount of firefly emitters on Timber Hearth"
     },
+    "birdSongSeparator": {
+      "type": "separator"
+    },
+    "birdSongVolume": {
+      "title": "Bird Song Volume",
+      "type": "slider",
+      "value": 0.8,
+      "min": 0.0,
+      "max": 1.0,
+      "tooltip": "Adjusts the volume of the bird song on Timber Hearth"
+    },
     "volumetricSeparator": {
       "type": "separator"
     },

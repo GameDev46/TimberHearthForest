@@ -135,6 +135,10 @@ namespace TimberHearthForest
             bool geyserLandingPadEnabled = config.GetSettingsValue<string>("geyserLandingPadEnabled") == "Enabled";
             LandingPadUtils.ToggleLandingPadVisibility(geyserLandingPadEnabled);
 
+            // Update the volume of the bird song
+            float birdSongVolume = config.GetSettingsValue<float>("birdSongVolume");
+            BirdSongUtils.SetBirdSongVolume(birdSongVolume);
+
             // Update whether volumetric clouds are enabled
             bool volumetricCloudsEnabled = config.GetSettingsValue<string>("volumetricCloudsEnabled") == "Enabled";
             bool volumetricCloudShadowsEnabled = config.GetSettingsValue<string>("volumetricCloudShadowsEnabled") == "Enabled";
@@ -449,6 +453,11 @@ namespace TimberHearthForest
             var grassHandle = grassTemplate.GetComponent<StreamingMeshHandle>();
             if (grassHandle) if (!string.IsNullOrEmpty(grassHandle.assetBundle)) assetBundles.Add(grassHandle.assetBundle);
 
+            // Setup and load bird sound asset bundle
+            BirdSongUtils.SetModDirectoryPath(ModHelper.Manifest.ModFolderPath);
+            BirdSongUtils.SetModConsole(ModHelper.Console);
+            BirdSongUtils.LoadBirdSongAssets();
+
             // Locate the Timber Hearth and Quantum Moon Sector
             timberHearthSector = Locator.GetAstroObject(AstroObject.Name.TimberHearth).GetComponentInChildren<Sector>();
             quantumMoonSector = Locator.GetAstroObject(AstroObject.Name.QuantumMoon).GetComponentInChildren<Sector>();
@@ -525,6 +534,11 @@ namespace TimberHearthForest
 
                 // Check to add the firefly particle effects
                 if (index % 10 == 0) AddFireflies(treeClone.transform, firefliesParent);
+
+                // Check to add the bird song audio source
+                if (index % 30 == 0) BirdSongUtils.AddBirdSongAudioSource(treeClone.transform);
+
+                // Increase index
                 index++;
 
                 /* ------------ */
@@ -574,6 +588,10 @@ namespace TimberHearthForest
             // Update the firefly density
             string fireflyDensityPreset = ModHelper.Config.GetSettingsValue<string>("fireflyDensity");
             UpdatePropDensity(fireflyDensityPreset, "firefly");
+
+            // Update the volume of the bird song
+            float birdSongVolume = ModHelper.Config.GetSettingsValue<float>("birdSongVolume");
+            BirdSongUtils.SetBirdSongVolume(birdSongVolume);
 
             // Add the landing site to the large geyser
             SpawnLandingPad();

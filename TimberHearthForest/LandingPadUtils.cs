@@ -35,27 +35,7 @@ namespace TimberHearthForest
             {
                 if (landingPadPrefab == null)
                 {
-
-                    string platformFolder = "Windows";
-
-                    /*switch (Application.platform)
-                    {
-                        case RuntimePlatform.WindowsPlayer:
-                        case RuntimePlatform.WindowsEditor:
-                            platformFolder = "Windows";
-                            break;
-                        case RuntimePlatform.LinuxPlayer:
-                            platformFolder = "Linux";
-                            break;
-                        case RuntimePlatform.OSXPlayer:
-                            platformFolder = "Mac";
-                            break;
-                        default:
-                            modConsole.WriteLine($"Unsupported platform: {Application.platform}", MessageType.Warning);
-                            return;
-                    }*/
-
-                    string bundlePath = Path.Combine(modFolderPath, "Assets", platformFolder, "landingpad");
+                    string bundlePath = Path.Combine(modFolderPath, "Assets", "Windows", "landingpad");
                     landingPadBundle = AssetBundle.LoadFromFile(bundlePath);
 
                     if (landingPadBundle == null)

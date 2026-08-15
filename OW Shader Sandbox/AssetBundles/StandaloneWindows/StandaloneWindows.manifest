@@ -1,5 +1,5 @@
 ManifestFileVersion: 0
-CRC: 3157735567
+CRC: 496442432
 AssetBundleManifest:
   AssetBundleInfos:
     Info_0:
@@ -13,4 +13,7 @@ AssetBundleManifest:
       Dependencies: {}
     Info_3:
       Name: landingpad
+      Dependencies: {}
+    Info_4:
+      Name: birdsound
       Dependencies: {}
