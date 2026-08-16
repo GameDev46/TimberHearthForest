@@ -36,14 +36,22 @@ For the easiest method of installation, use the [Outer Wilds Mod Manager](https:
 
 <table>
   <tr>
-    <!--<th><img width="1920" alt="Trees in front of a cloudy blue sky with the Attlerock in the background" src="https://github.com/user-attachments/assets/458e9e1a-6d8f-4d89-a407-1bd68bd3f323"/></th>-->
-    <th><img width="1920" alt="Turbulent clouds over the forest on Timber Hearth" src="https://github.com/user-attachments/assets/66b5a002-1062-4aac-97bd-6850dca20a62" /></th>
-    <th><img width="1920" alt="Large white clouds in the sky above the observatory on Timber Hearth" src="https://github.com/user-attachments/assets/bfdda1f3-25f4-4c69-9b03-eeabad18d23a" /></th>
-    <!--<th><img width="1920" alt="Large white clouds in the sky above the observatory on Timber Hearth" src="https://github.com/user-attachments/assets/3222c0a7-79b6-45e9-a67d-2319ff7fa65c" /></th>-->
+    <th><img width="1920" alt="Thick clouds over the surface of Timber Hearth" src="https://github.com/user-attachments/assets/976b090d-bdd7-4918-8ff4-4e29cc531692" /></th>
+    <th><img width="1920" alt="Misty mountain side launch pad" src="https://github.com/user-attachments/assets/e7d8ed23-76e3-4570-9474-9e9a1e57cd68" /></th>
   </tr>
   <tr>
-    <!--<th><img width="1920" alt="Peaking through the thick white clouds to see the forest covered surface of Timber Hearth" src="https://github.com/user-attachments/assets/fe03eed8-c024-4bd8-b009-adb5dcda030b" /></th>-->
-    <!--<th><img width="1920" height="1080" alt="Screenshot (948)" src="https://github.com/user-attachments/assets/0f73a4cb-58fd-4cd7-87e2-d7ada08218a4" /></th>-->
+    <th><img width="1920" alt="Misty mountain side launch pad with ship parked" src="https://github.com/user-attachments/assets/c38dad80-4b30-4941-906c-edbff7ca13c1" /></th>
+    <th><img width="1920" alt="Clouds over the surface of Timber Hearth" src="https://github.com/user-attachments/assets/e5d0df12-3b1c-4538-ac5b-3d6642c02d4d" /></th>
+  </tr>
+  <tr>
+    <th><img width="1920" alt="Thick clouds over Timber Hearth obscure distant geyser" src="https://github.com/user-attachments/assets/ee55bbd9-613e-46a2-9545-31f1be2b8b1f" /></th>
+    <th><img width="1920" alt="Clouds on Timber Hearth obscure distant geyser" src="https://github.com/user-attachments/assets/ed0718ba-f5f2-4b27-bafe-580744cf66cc" /></th>
+  </tr>
+  <tr>
+    <th><img width="1920" alt="High up perspective of clouds covering Timber Hearth" src="https://github.com/user-attachments/assets/accaccaf-4864-4220-9da5-ed0ee9712f93" /></th>
+    <th><img width="1920" alt="Large white clouds in the sky above the observatory on Timber Hearth" src="https://github.com/user-attachments/assets/bfdda1f3-25f4-4c69-9b03-eeabad18d23a" /></th>
+  </tr>
+  <tr>
     <th><img width="1920" alt="Thick clouds over Timber Hearth's Cliffs" src="https://github.com/user-attachments/assets/2fcdfd61-1a7c-444e-b70a-90d88d35ec44" /></th>
     <th><img width="1920" alt="Looking above the trees from the surface of Timber Hearth at the sun in the sky" src="https://github.com/user-attachments/assets/0a12b387-cab2-4ffa-9352-291c2536e50b"/></th>
   </tr>
