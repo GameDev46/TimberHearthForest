@@ -132,17 +132,45 @@ namespace TimberHearthForest
         {
             if (!isPlayingBirdSong)
             {
+                Vector3 THPosition = Locator.GetAstroObject(AstroObject.Name.TimberHearth).transform.position;
+                Vector3 sunPos = Locator.GetSunTransform().position;
+
+                // Calculate the vector from Timber Hearth to the sun (no need to normalise)
+                Vector3 sunDirFromTH = sunPos - THPosition;
+
+                // Check if it is currently night, if not then disable
+                Vector3 THWorldNormal = transform.position - THPosition;
+
+                // Calculate the dot product
+                float dot = Dot(sunDirFromTH, THWorldNormal);
+                bool isNight = dot < 0.0f;
+
                 isPlayingBirdSong = true;
 
-                int randomIndex = UnityEngine.Random.Range(0, 5);
-                switch (randomIndex)
+                // Only play bird song during the day
+                if (!isNight)
                 {
-                    case 0: case 3: StartCoroutine(PlayBirdSong(birdAudio1)); break;
-                    case 1: case 4: StartCoroutine(PlayBirdSong(birdAudio2)); break;
-                    case 2: StartCoroutine(PlayBirdSong(birdAudio3)); break; // Noisy and memorable, so appears less often
-                    default: StartCoroutine(PlayBirdSong(birdAudio1)); break;
+                    int randomIndex = UnityEngine.Random.Range(0, 5);
+                    switch (randomIndex)
+                    {
+                        case 0: case 3: StartCoroutine(PlayBirdSong(birdAudio1)); break;
+                        case 1: case 4: StartCoroutine(PlayBirdSong(birdAudio2)); break;
+                        case 2: StartCoroutine(PlayBirdSong(birdAudio3)); break; // Noisy and memorable, so appears less often
+                        default: StartCoroutine(PlayBirdSong(birdAudio1)); break;
+                    }
+                } else
+                {
+                    StartCoroutine(WaitForRandomTime());
                 }
             }
+        }
+
+        private IEnumerator WaitForRandomTime()
+        {
+            float waitTime = UnityEngine.Random.Range(5.0f, 20.0f);
+            yield return new WaitForSeconds(waitTime);
+
+            isPlayingBirdSong = false;
         }
 
         private IEnumerator PlayBirdSong(AudioSource birdSong)
@@ -177,6 +205,12 @@ namespace TimberHearthForest
         {
             StopAllCoroutines();
             isPlayingBirdSong = false;
+        }
+
+        private float Dot(Vector3 a, Vector3 b)
+        {
+            // Compute the dot product between vector a and b
+            return (a.x * b.x + a.y * b.y + a.z * b.z);
         }
     }
 }

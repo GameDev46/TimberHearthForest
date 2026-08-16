@@ -8,12 +8,12 @@
 
 ## Info
 
-This mod covers the barren surface of Timber Hearth with trees, grass and fireflies as well as adding clouds which can be toggled to volumetric or flat (volumetric is a bit more computationally intensive).
+This mod covers the barren surface of Timber Hearth with trees, grass, fireflies and a new geyser landing pad as well as adding clouds which can be either volumetric or plane (volumetric is a bit more computationally intensive but with the bonus of the clouds being 3D).
 
 ## Credits
 
 - [JohnCorby](https://github.com/JohnCorby) - Ambient lighting, planet and moon shadows and cloud shadow implementation for volumetric clouds
-- [GameDev46](https://github.com/GameDev46) - Timber Hearth trees, grass, fireflies and base volumetric cloud and god rays implementation
+- [GameDev46](https://github.com/GameDev46) - Timber Hearth trees, grass, fireflies, bird song, geyser landing pad, volumetric clouds and god rays implementation
 
 ## Installation
 
@@ -24,10 +24,13 @@ For the easiest method of installation, use the [Outer Wilds Mod Manager](https:
 - The density of trees, grass, fireflies and clouds can be seperately customised
 - Tree hitboxes can be toggled on or off (be careful when you turning hitboxes on, you don't want to be inside a tree when this happens!)
 - Firefly timing can be changed to have them show during the day, night or day and night
+- The bird song can be toggled on or off (when enabled bird song can be heard in some of the trees during the day)
+- The new geyser landing pad on Timber Hearth can be toggled on or off
 - The tree occlusion optimisation can be toggled on or off (when enabled this hides trees which are out of the camera's view helping to increase performance)
 - ```[EXPERIMENTAL]``` Volumetric clouds can be toggled on or off (when off the default plane clouds are used)
 - ```[EXPERIMENTAL]``` Volumetric cloud shadows can be enabled or disabled
-- ```[EXPERIMENTAL]``` The quality, size, sky coverage, turbulence and god ray quality of the volumetric clouds can be adjusted
+- ```[EXPERIMENTAL]``` Dynamic clouds can be enabled or disabled (when enabled the volumetric cloud coverage, size and turbulence changes over time)
+- ```[EXPERIMENTAL]``` The quality, size, sky coverage, turbulence and god ray quality of the volumetric clouds can be adjusted when not in dynamic mode
 
 ## Screenshots
 
