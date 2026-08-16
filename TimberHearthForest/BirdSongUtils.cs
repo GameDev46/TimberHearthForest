@@ -137,34 +137,45 @@ namespace TimberHearthForest
                 int randomIndex = UnityEngine.Random.Range(0, 5);
                 switch (randomIndex)
                 {
-                    case 1: case 4: StartCoroutine(PlayBirdSong(birdAudio1)); break;
-                    case 2: case 5: StartCoroutine(PlayBirdSong(birdAudio2)); break;
-                    case 3: StartCoroutine(PlayBirdSong(birdAudio3)); break; // Noisy and memorable, so appear less often
+                    case 0: case 3: StartCoroutine(PlayBirdSong(birdAudio1)); break;
+                    case 1: case 4: StartCoroutine(PlayBirdSong(birdAudio2)); break;
+                    case 2: StartCoroutine(PlayBirdSong(birdAudio3)); break; // Noisy and memorable, so appears less often
+                    default: StartCoroutine(PlayBirdSong(birdAudio1)); break;
                 }
             }
         }
 
         private IEnumerator PlayBirdSong(AudioSource birdSong)
         {
-            birdSong.Stop();
-            birdSong.time = 0.0f;
+            StopAllBirdAudio();
+
             birdSong.Play();
 
-            while (birdSong.isPlaying)
-            {
-                yield return null;
-            }
+            float clipDuration = birdSong.clip.length;
+            yield return new WaitForSeconds(clipDuration);
 
-            birdAudio1.Stop();
-            birdAudio2.Stop();
-            birdAudio3.Stop();
+            StopAllBirdAudio();
 
-            birdAudio1.time = 0.0f;
-            birdAudio2.time = 0.0f;
-            birdAudio3 .time = 0.0f;
+            float restInterval = UnityEngine.Random.Range(1.0f, 10.0f);
+            yield return new WaitForSeconds(restInterval);
 
-            yield return new WaitForSeconds(UnityEngine.Random.Range(0.5f, 10.0f));
+            isPlayingBirdSong = false;
+        }
 
+        private void StopAllBirdAudio()
+        {
+            if (birdAudio1 != null) birdAudio1.Stop();
+            if (birdAudio2 != null) birdAudio2.Stop();
+            if (birdAudio3 != null) birdAudio3.Stop();
+
+            if (birdAudio1 != null) birdAudio1.time = 0.0f;
+            if (birdAudio2 != null) birdAudio2.time = 0.0f;
+            if (birdAudio3 != null) birdAudio3.time = 0.0f;
+        }
+
+        private void OnDisable()
+        {
+            StopAllCoroutines();
             isPlayingBirdSong = false;
         }
     }

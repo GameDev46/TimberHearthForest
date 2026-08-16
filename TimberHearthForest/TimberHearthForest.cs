@@ -468,6 +468,9 @@ namespace TimberHearthForest
             // Load all the asset bundles to prevent the clones from being invisible
             foreach (string bundle in assetBundles) StreamingManager.LoadStreamingAssets(bundle);
 
+            // Load the tree textures
+            StreamingManager.LoadStreamingAssets("quantummoon/textures/props");
+
             // Used to group sectors clones together for a cleaner hierachy
             GameObject sectorsParent = new GameObject($"TH_Forest_Sectors");
             sectorsParent.transform.SetParent(timberHearthSector.transform, false);
@@ -603,6 +606,9 @@ namespace TimberHearthForest
             if (!timberHearthSector.ContainsOccupant(DynamicOccupant.Player)) return;
             // Load all the asset bundles
             foreach (string bundle in assetBundles) StreamingManager.LoadStreamingAssets(bundle);
+
+            // Load the tree textures
+            StreamingManager.LoadStreamingAssets("quantummoon/textures/props");
         }
 
         private void OnLeaveQuantumMoon(SectorDetector detector)
@@ -611,6 +617,9 @@ namespace TimberHearthForest
             if (quantumMoonSector.ContainsOccupant(DynamicOccupant.Player)) return;
             // Load all the asset bundles
             foreach (string bundle in assetBundles) StreamingManager.LoadStreamingAssets(bundle);
+
+            // Load the tree textures
+            StreamingManager.LoadStreamingAssets("quantummoon/textures/props");
         }
 
         void SpawnLandingPad()
