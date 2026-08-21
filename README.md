@@ -1,6 +1,6 @@
 # Outer Wilds - Timber Hearth Forest
 
-<img width="1920" alt="Timber Hearth with Trees on its surface at night" src="https://github.com/user-attachments/assets/e01bb7c7-22bc-4798-b091-c1c9442a259e" />
+<img width="1920" alt="Timber Hearth with Trees on its surface with clouds above" src="Images/cloudyRadioStation.png" />
 
 <hr>
 
@@ -36,23 +36,23 @@ For the easiest method of installation, use the [Outer Wilds Mod Manager](https:
 
 <table>
   <tr>
-    <th><img width="1920" alt="Thick clouds over the surface of Timber Hearth" src="https://github.com/user-attachments/assets/976b090d-bdd7-4918-8ff4-4e29cc531692" /></th>
-    <th><img width="1920" alt="Misty mountain side launch pad" src="https://github.com/user-attachments/assets/e7d8ed23-76e3-4570-9474-9e9a1e57cd68" /></th>
+    <th><img width="1920" alt="Thick clouds over the surface of Timber Hearth" src="Images/cloudyDayTrees.png" /></th>
+    <th><img width="1920" alt="Misty mountain side launch pad" src="Images/mistyLandingPadNoShip.png" /></th>
   </tr>
   <tr>
-    <th><img width="1920" alt="Misty mountain side launch pad with ship parked" src="https://github.com/user-attachments/assets/c38dad80-4b30-4941-906c-edbff7ca13c1" /></th>
-    <th><img width="1920" alt="Clouds over the surface of Timber Hearth" src="https://github.com/user-attachments/assets/e5d0df12-3b1c-4538-ac5b-3d6642c02d4d" /></th>
+    <th><img width="1920" alt="Misty mountain side launch pad with ship parked" src="Images/mistyLandingPad.png" /></t>
+    <th><img width="1920" alt="Clouds over the surface of Timber Hearth" src="Images/cloudyRadioStation.png" /></th>
   </tr>
   <tr>
-    <th><img width="1920" alt="Thick clouds over Timber Hearth obscure distant geyser" src="https://github.com/user-attachments/assets/ee55bbd9-613e-46a2-9545-31f1be2b8b1f" /></th>
-    <th><img width="1920" alt="Clouds on Timber Hearth obscure distant geyser" src="https://github.com/user-attachments/assets/ed0718ba-f5f2-4b27-bafe-580744cf66cc" /></th>
+    <th><img width="1920" alt="Thick clouds over Timber Hearth obscure distant geyser" src="Images/cloudyGeyser.png" /></th>
+    <th><img width="1920" alt="Clouds on Timber Hearth obscure distant geyser" src="Images/cloudyGeyserDarker.png" /></th>
   </tr>
   <tr>
-    <th><img width="1920" alt="High up perspective of clouds covering Timber Hearth" src="https://github.com/user-attachments/assets/accaccaf-4864-4220-9da5-ed0ee9712f93" /></th>
-    <th><img width="1920" alt="Large white clouds in the sky above the observatory on Timber Hearth" src="https://github.com/user-attachments/assets/bfdda1f3-25f4-4c69-9b03-eeabad18d23a" /></th>
+    <th><img width="1920" alt="High up perspective of clouds covering Timber Hearth" src="Images/cloudyDayTHWideShot.png" /></th>
+    <th><img width="1920" alt="Large white clouds in the sky above the observatory on Timber Hearth" src="Images/landingPadgeyserCloud.png" /></th>
   </tr>
   <tr>
-    <th><img width="1920" alt="Thick clouds over Timber Hearth's Cliffs" src="https://github.com/user-attachments/assets/2fcdfd61-1a7c-444e-b70a-90d88d35ec44" /></th>
-    <th><img width="1920" alt="Looking above the trees from the surface of Timber Hearth at the sun in the sky" src="https://github.com/user-attachments/assets/0a12b387-cab2-4ffa-9352-291c2536e50b"/></th>
+    <th><img width="1920" alt="Thick clouds over Timber Hearth's Cliffs" src="Images/godRayMountainHeavyCloudOld.png" /></th>
+    <th><img width="1920" alt="Looking above the trees from the surface of Timber Hearth at the sun in the sky" src="Images/GDandAttlerockHorizonTreesDay.png"/></th>
   </tr>
 </table>
