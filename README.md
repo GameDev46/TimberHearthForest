@@ -30,7 +30,7 @@ For the easiest method of installation, use the [Outer Wilds Mod Manager](https:
 - ```[EXPERIMENTAL]``` Volumetric clouds can be toggled on or off (when off the default plane clouds are used)
 - ```[EXPERIMENTAL]``` Volumetric cloud shadows can be enabled or disabled
 - ```[EXPERIMENTAL]``` Dynamic clouds can be enabled or disabled (when enabled the volumetric cloud coverage, size and turbulence changes over time)
-- ```[EXPERIMENTAL]``` The quality, size, sky coverage, turbulence and god ray quality of the volumetric clouds can be adjusted when not in dynamic mode
+- ```[EXPERIMENTAL]``` The quality, size, sky coverage, turbulence and god ray quality of the volumetric clouds can be adjusted when not in dynamic mode (**WARNING**: god rays can impact performance significantly so I recommend leaving them off)
 
 ## Screenshots
 
