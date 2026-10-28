@@ -14,6 +14,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using TimberHearthForest.API;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.SceneManagement;
@@ -28,6 +29,7 @@ namespace TimberHearthForest
 
         private bool IN_SOLAR_SYSTEM = false;
         private const float MAX_FIREFLY_DISTANCE = 100.0f;
+        private const int TREE_SPAWN_BATCH_SIZE = 50;  // ~2800 trees, so takes 2800 / TREE_SPAWN_BATCH_SIZE frames to spawn all trees, grass and fireflies
 
         private Dictionary<Vector3Int, ForestSectorUtils.ForestSector> forestSectors = new Dictionary<Vector3Int, ForestSectorUtils.ForestSector>();
 
@@ -564,6 +566,9 @@ namespace TimberHearthForest
                 grassClone.GetComponent<Renderer>()?.enabled = true;
 
                 spawnedGrass.Add(grassClone);
+
+                // Wait for next frame if the spawn batch size is reached to prevent freezing the game
+                if (index % TREE_SPAWN_BATCH_SIZE == 0) yield return null;
             }
 
             ModHelper.Console.WriteLine("All trees, grass tufts and fireflies have been created successfully.", MessageType.Success);
@@ -1051,6 +1056,223 @@ namespace TimberHearthForest
         {
             // Compute the dot product between vector a and b
             return (a.x * b.x + a.y * b.y + a.z * b.z);
+        }
+
+        // Overrride the GetApi method to return an instance of TimberHearthForestAPI
+        public override object GetApi()
+        {
+            return new TimberHearthForestAPI(this);
+        }
+
+        /* --------------------- */
+        /*   MOD API FUNCTIONS   */
+        /* --------------------- */
+
+        // GENERAL VOLUMETRIC CLOUD API FUNCTIONS
+
+        public float GetVolumetricCloudErosionStrength()
+        {
+            if (volumetricCloudObjects.Count == 0) return 0.0f;
+
+            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            if (volCloud == null) return 0.0f;
+
+            return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_ErosionStrength") ?? 0.0f;
+        }
+
+        public void SetVolumetricCloudErosionStrength(float strength)
+        {
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
+                if (cloudMat != null) cloudMat.SetFloat("_ErosionStrength", strength);
+
+                Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+                if (cloudShadowMat != null) cloudShadowMat.SetFloat("_ErosionStrength", strength);
+            }
+        }
+
+        public float GetVolumetricCloudOuterRadius()
+        {
+            if (volumetricCloudObjects.Count == 0) return 0.0f;
+
+            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            if (volCloud == null) return 0.0f;
+
+            return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_OuterRadius") ?? 0.0f;
+        }
+
+        public void SetVolumetricCloudOuterRadius(float radius)
+        {
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
+                if (cloudMat != null) cloudMat.SetFloat("_OuterRadius", radius);
+
+                Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+                if (cloudShadowMat != null) cloudShadowMat.SetFloat("_OuterRadius", radius);
+            }
+        }
+
+        public float GetVolumetricCloudInnerRadius()
+        {
+            if (volumetricCloudObjects.Count == 0) return 0.0f;
+
+            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            if (volCloud == null) return 0.0f;
+
+            return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_InnerRadius") ?? 0.0f;
+        }
+
+        public void SetVolumetricCloudInnerRadius(float radius)
+        {
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
+                if (cloudMat != null) cloudMat.SetFloat("_InnerRadius", radius);
+
+                Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+                if (cloudShadowMat != null) cloudShadowMat.SetFloat("_InnerRadius", radius);
+            }
+        }
+
+        public float GetVolumetricCloudLightAbsorptionThroughCloud()
+        {
+            if (volumetricCloudObjects.Count == 0) return 0.8f;
+
+            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            if (volCloud == null) return 0.8f;
+
+            return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_LightAbsorptionThroughCloud") ?? 0.8f;
+        }
+
+        public void SetVolumetricCloudLightAbsorptionThroughCloud(float absorption)
+        {
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
+                if (cloudMat != null) cloudMat.SetFloat("_LightAbsorptionThroughCloud", absorption);
+            }
+        }
+
+        public float GetVolumetricCloudLightAbsorptionTowardsSun()
+        {
+            if (volumetricCloudObjects.Count == 0) return 0.4f;
+
+            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            if (volCloud == null) return 0.4f;
+
+            return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_LightAbsorptionTowardsSun") ?? 0.4f;
+        }
+
+        public void SetVolumetricCloudLightAbsorptionTowardsSun(float absorption)
+        {
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
+                if (cloudMat != null) cloudMat.SetFloat("_LightAbsorptionTowardsSun", absorption);
+            }
+        }
+
+        public bool GetVolumetricCloudShadowsEnabled()
+        {
+            if (volumetricCloudObjects.Count == 0) return false;
+
+            GameObject shadowCloud = volumetricCloudObjects[0].Item2;
+            if (shadowCloud == null) return false;
+
+            CloudShadowInjector shadowInjector = shadowCloud?.GetComponent<CloudShadowInjector>();
+            if (shadowInjector == null) return false;
+
+            return shadowInjector.AreShadowsEnabled();
+        }
+
+        public void SetVolumetricCloudShadowsEnabled(bool enabled)
+        {
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                CloudShadowInjector shadowInjector = shadowCloud?.GetComponent<CloudShadowInjector>();
+                if (shadowInjector != null)
+                {
+                    if (enabled)
+                    {
+                        shadowInjector.EnabledShadows();
+                    }
+                    else
+                    {
+                        shadowInjector.DisableShadows();
+                    }
+                }
+            }
+        }
+
+        // VOLUMETRIC CLOUD DYNAMIC WEATHER API FUNCTIONS
+
+        public float GetVolumetricCloudScale()
+        {
+            return dynamicCloudSize;
+        }
+
+        public void SetVolumetricCloudScale(float scale)
+        {
+            dynamicCloudSize = Mathf.Clamp(scale, 0.5f, 1.5f);
+
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
+                if (cloudMat != null) cloudMat.SetFloat("_CloudScale", dynamicCloudSize);
+
+                Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+                if (cloudShadowMat != null) cloudShadowMat.SetFloat("_CloudScale", dynamicCloudSize);
+            }
+        }
+
+        public float GetVolumetricCloudCoverage()
+        {
+            return dynamicCloudCoverageThreshold;
+        }
+
+        public void SetVolumetricCloudCoverage(float coverage)
+        {
+            dynamicCloudCoverageThreshold = coverage;
+
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
+                if (cloudMat != null) cloudMat.SetFloat("_DensityThreshold", dynamicCloudCoverageThreshold);
+
+                Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+                if (cloudShadowMat != null) cloudShadowMat.SetFloat("_DensityThreshold", dynamicCloudCoverageThreshold);
+            }
+        }
+
+        public float GetVolumetricCloudTurbulence()
+        {
+            return dynamicCloudTurbulenceStrength;
+        }
+
+        public void SetVolumetricCloudTurbulence(float turbulence)
+        {
+            dynamicCloudTurbulenceStrength = turbulence;
+
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
+                if (cloudMat != null) cloudMat.SetFloat("_WarpStrength", dynamicCloudTurbulenceStrength);
+
+                Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+                if (cloudShadowMat != null) cloudShadowMat.SetFloat("_WarpStrength", dynamicCloudTurbulenceStrength);
+            }
+        }
+
+        public bool GetDynamicWeatherEnabled()
+        {
+            return dynamicWeatherEnabled;
+        }
+
+        public void SetDynamicWeatherEnabled(bool enabled)
+        {
+            dynamicWeatherEnabled = enabled;
         }
 
     }

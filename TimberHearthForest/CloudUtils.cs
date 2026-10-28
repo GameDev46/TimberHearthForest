@@ -253,7 +253,7 @@ namespace TimberHearthForest
             //mat.SetFloat("_ForwardScatteringBias", 0.2f);
 
             mat.SetFloat("_WarpStrength", 50.0f);
-            mat.SetFloat("_AirDensity", 0.001f);
+            mat.SetFloat("_AirDensity", 0.000f);
 
             mat.SetVector("_SunDirection", new Vector4(0.0f, 1.0f, 0.0f, 0.0f));
             mat.SetColor("_SunColor", new Color(1.0f, 1.0f, 1.0f, 1.0f));

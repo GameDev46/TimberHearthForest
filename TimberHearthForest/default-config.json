@@ -184,7 +184,7 @@
         "Very Weak",
         "None"
       ],
-      "tooltip": "Controls the strength of the god rays for the volumetric clouds"
+      "tooltip": "Controls the strength of the god rays for the volumetric clouds - WARNING: Very Performance Intensive!!!"
     },
     "landingPadSeparator": {
       "type": "separator"

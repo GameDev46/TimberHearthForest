@@ -62,6 +62,11 @@ namespace TimberHearthForest
             }
         }
 
+        public bool AreShadowsEnabled()
+        {
+            return cmd != null;
+        }
+
         private void BuildCommandBuffer(Camera cam)
         {
             if (cmd == null || meshRenderer == null) return;
