@@ -9,7 +9,35 @@ namespace TimberHearthForest.API
 {
     public interface ITimberHearthForestAPI
     {
+        // MOD SETTINGS API FUNCTIONS
+        public bool GetSettingsLocked();
+        public void SetSettingsLocked(bool value);
+
+        public bool GetTreeCollidersEnabled();
+        public void SetTreeCollidersEnabled(bool enabled);
+
+        public void SetRegularCloudDensityPreset(string cloudDensityPreset);
+        public void SetTreeDensityPreset(string density);
+        public void SetGrassDensityPreset(string density);
+        public void SetFireflyDensityPreset(string density);
+
+        public void SetFireflyVisibilityAtNight(bool enabled);
+        public void SetFireflyVisibilityAtDay(bool enabled);
+
+        public bool GetTreeOptimisationEnabled();
+        public void SetTreeOptimisationEnabled(bool enabled);
+
+        public void SetLandingPadEnabled(bool enabled);
+
+        public void SetBirdSongVolume(float volume);
+
         // GENERAL VOLUMETRIC CLOUD API FUNCTIONS
+        public bool GetVolumetricCloudSettingsLocked();
+        public void SetVolumetricCloudSettingsLocked(bool value);
+
+        public bool GetVolumetricCloudsEnabled();
+        public void SetVolumetricCloudsEnabled(bool enabled);
+
         public float GetVolumetricCloudErosionStrength();
         public void SetVolumetricCloudErosionStrength(float strength);
         public float GetVolumetricCloudOuterRadius();

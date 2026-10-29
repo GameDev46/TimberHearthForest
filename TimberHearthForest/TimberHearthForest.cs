@@ -31,6 +31,9 @@ namespace TimberHearthForest
         private const float MAX_FIREFLY_DISTANCE = 100.0f;
         private const int TREE_SPAWN_BATCH_SIZE = 50;  // ~2800 trees, so takes 2800 / TREE_SPAWN_BATCH_SIZE frames to spawn all trees, grass and fireflies
 
+        private bool settingsLocked = false;
+        private bool volumetricCloudSettingsLocked = false;
+
         private Dictionary<Vector3Int, ForestSectorUtils.ForestSector> forestSectors = new Dictionary<Vector3Int, ForestSectorUtils.ForestSector>();
 
         private List<GameObject> spawnedTrees = new List<GameObject>();
@@ -109,37 +112,40 @@ namespace TimberHearthForest
         /// Called by OWML, once at the start and upon each config setting change.
         public override void Configure(IModConfig config)
         {
-            // Update the tree density
-            string treeDensityPreset = config.GetSettingsValue<string>("treeDensity");
-            UpdatePropDensity(treeDensityPreset, "tree");
+            if (!settingsLocked)
+            {
+                // Update the tree density
+                string treeDensityPreset = config.GetSettingsValue<string>("treeDensity");
+                UpdatePropDensity(treeDensityPreset, "tree");
 
-            // Update whether tree colliders are enabled
-            bool treeCollidersEnabled = config.GetSettingsValue<string>("treeCollidersEnabled") == "Enabled";
-            ToggleTreeHitboxes(treeCollidersEnabled);
+                // Update whether tree colliders are enabled
+                bool treeCollidersEnabled = config.GetSettingsValue<string>("treeCollidersEnabled") == "Enabled";
+                ToggleTreeHitboxes(treeCollidersEnabled);
 
-            // Update sector based on whether the sector optimisation is enabled
-            forestSectorOptimisationEnabled = ModHelper.Config.GetSettingsValue<string>("treeOcclusionOptimisation") == "Enabled";
+                // Update sector based on whether the sector optimisation is enabled
+                forestSectorOptimisationEnabled = ModHelper.Config.GetSettingsValue<string>("treeOcclusionOptimisation") == "Enabled";
 
-            // Update the grass density
-            string grassDensityPreset = config.GetSettingsValue<string>("grassDensity");
-            UpdatePropDensity(grassDensityPreset, "grass");
+                // Update the grass density
+                string grassDensityPreset = config.GetSettingsValue<string>("grassDensity");
+                UpdatePropDensity(grassDensityPreset, "grass");
 
-            // Update when fireflies should be active
-            string fireflyEnabledState = config.GetSettingsValue<string>("fireflyEnabled");
-            firefliesEnabledAtNight = fireflyEnabledState == "Night" || fireflyEnabledState == "Day and Night";
-            firefliesEnabledAtDay = fireflyEnabledState == "Day" || fireflyEnabledState == "Day and Night";
+                // Update when fireflies should be active
+                string fireflyEnabledState = config.GetSettingsValue<string>("fireflyEnabled");
+                firefliesEnabledAtNight = fireflyEnabledState == "Night" || fireflyEnabledState == "Day and Night";
+                firefliesEnabledAtDay = fireflyEnabledState == "Day" || fireflyEnabledState == "Day and Night";
 
-            // Update the firefly emitter density
-            string fireflyDensityPreset = config.GetSettingsValue<string>("fireflyDensity");
-            UpdatePropDensity(fireflyDensityPreset, "firefly");
+                // Update the firefly emitter density
+                string fireflyDensityPreset = config.GetSettingsValue<string>("fireflyDensity");
+                UpdatePropDensity(fireflyDensityPreset, "firefly");
 
-            // Update whether the geyser landing pad is enabled
-            bool geyserLandingPadEnabled = config.GetSettingsValue<string>("geyserLandingPadEnabled") == "Enabled";
-            LandingPadUtils.ToggleLandingPadVisibility(geyserLandingPadEnabled);
+                // Update whether the geyser landing pad is enabled
+                bool geyserLandingPadEnabled = config.GetSettingsValue<string>("geyserLandingPadEnabled") == "Enabled";
+                LandingPadUtils.ToggleLandingPadVisibility(geyserLandingPadEnabled);
 
-            // Update the volume of the bird song
-            float birdSongVolume = config.GetSettingsValue<float>("birdSongVolume");
-            BirdSongUtils.SetBirdSongVolume(birdSongVolume);
+                // Update the volume of the bird song
+                float birdSongVolume = config.GetSettingsValue<float>("birdSongVolume");
+                BirdSongUtils.SetBirdSongVolume(birdSongVolume);
+            }
 
             // Update whether volumetric clouds are enabled
             bool volumetricCloudsEnabled = config.GetSettingsValue<string>("volumetricCloudsEnabled") == "Enabled";
@@ -164,7 +170,7 @@ namespace TimberHearthForest
 
             // Update whether clouds are enabled
             string cloudDensityPreset = config.GetSettingsValue<string>("cloudDensity");
-            UpdateCloudDensity(cloudDensityPreset, volumetricCloudsEnabled);
+            if (!settingsLocked) UpdateCloudDensity(cloudDensityPreset, volumetricCloudsEnabled);
         }
 
         private void LoadAndSpawnProps(string spawnDataFileLoc)
@@ -283,7 +289,6 @@ namespace TimberHearthForest
 
         private void UpdateVolumetricCloudSettings(bool enabled, bool shadowsEnabled, string quality, string size, string coverage, string turbulence, string godRayStrength)
         {
-
             float rayStepSize = 10.0f;
             float sunRayStepSize = 20.0f;
 
@@ -352,14 +357,22 @@ namespace TimberHearthForest
                     break;
             }
 
-            // Update the global volumetric cloud settings
-            dynamicCloudCoverageThreshold = coverageThreshold;
-            dynamicCloudSize = sizeMultiplier;
-            dynamicCloudTurbulenceStrength = turbulenceStrength;
+            // Only update the global volumetric cloud settings if the settings are not locked
+            if (!volumetricCloudSettingsLocked && !settingsLocked)
+            {
+                // Update the global volumetric cloud settings
+                dynamicCloudCoverageThreshold = coverageThreshold;
+                dynamicCloudSize = sizeMultiplier;
+                dynamicCloudTurbulenceStrength = turbulenceStrength;
+            }
 
             foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
             {
-                cloud?.SetActive(enabled);
+                if (!volumetricCloudSettingsLocked && !settingsLocked)
+                {
+                    cloud?.SetActive(enabled);
+                    shadowCloud?.SetActive(enabled);
+                }
 
                 Material cloudMat = cloud.GetComponent<MeshRenderer>()?.material;
                 if (cloudMat != null)
@@ -367,30 +380,40 @@ namespace TimberHearthForest
                     cloudMat.SetFloat("_StepSize", rayStepSize);
                     cloudMat.SetFloat("_SunStepSize", sunRayStepSize);
 
-                    cloudMat.SetFloat("_CloudScale", sizeMultiplier);
-                    cloudMat.SetFloat("_DensityThreshold", coverageThreshold);
+                    if (!volumetricCloudSettingsLocked && !settingsLocked)
+                    {
+                        cloudMat.SetFloat("_CloudScale", sizeMultiplier);
+                        cloudMat.SetFloat("_DensityThreshold", coverageThreshold);
 
-                    cloudMat.SetFloat("_WarpStrength", turbulenceStrength);
-                    cloudMat.SetFloat("_AirDensity", airDensity);
-                }
+                        cloudMat.SetFloat("_WarpStrength", turbulenceStrength);
+                        cloudMat.SetFloat("_AirDensity", airDensity);
+                    }
+                }   
 
-                Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
-                if (cloudShadowMat != null)
+                if (!volumetricCloudSettingsLocked && !settingsLocked)
                 {
-                    cloudShadowMat.SetFloat("_CloudScale", sizeMultiplier);
-                    cloudShadowMat.SetFloat("_DensityThreshold", coverageThreshold);
+                    Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
+                    if (cloudShadowMat != null)
+                    {
+                        cloudShadowMat.SetFloat("_CloudScale", sizeMultiplier);
+                        cloudShadowMat.SetFloat("_DensityThreshold", coverageThreshold);
 
-                    cloudShadowMat.SetFloat("_WarpStrength", turbulenceStrength);
-                }
+                        cloudShadowMat.SetFloat("_WarpStrength", turbulenceStrength);
+                    }
 
-                CloudShadowInjector shadowInjector = shadowCloud?.GetComponent<CloudShadowInjector>();
-                if (shadowInjector != null) {
-                    if (enabled && shadowsEnabled) {
-                        shadowInjector.EnabledShadows();
-                        shadowInjector.shadowsEnabledOnStart = true;
-                    } else {
-                        shadowInjector.DisableShadows();
-                        shadowInjector.shadowsEnabledOnStart = false;
+                    CloudShadowInjector shadowInjector = shadowCloud?.GetComponent<CloudShadowInjector>();
+                    if (shadowInjector != null)
+                    {
+                        if (enabled && shadowsEnabled)
+                        {
+                            shadowInjector.EnabledShadows();
+                            shadowInjector.shadowsEnabledOnStart = true;
+                        }
+                        else
+                        {
+                            shadowInjector.DisableShadows();
+                            shadowInjector.shadowsEnabledOnStart = false;
+                        }
                     }
                 }
             }
@@ -586,7 +609,7 @@ namespace TimberHearthForest
 
             // Update the grass density
             string grassDensityPreset = ModHelper.Config.GetSettingsValue<string>("grassDensity");
-            UpdatePropDensity(treeDensityPreset, "grass");
+            UpdatePropDensity(grassDensityPreset, "grass");
 
             // Update firefly visibility
             string fireflyEnabledState = ModHelper.Config.GetSettingsValue<string>("fireflyEnabled");
@@ -1068,7 +1091,52 @@ namespace TimberHearthForest
         /*   MOD API FUNCTIONS   */
         /* --------------------- */
 
-        // GENERAL VOLUMETRIC CLOUD API FUNCTIONS
+        // ---- MOD SETTINGS API FUNCTIONS ----
+
+        public bool GetSettingsLocked() => settingsLocked;
+        public void SetSettingsLocked(bool locked) => settingsLocked = locked;
+
+        public bool GetTreeCollidersEnabled() => spawnedTrees[0]?.GetComponent<CapsuleCollider>()?.enabled ?? false;
+        public void SetTreeCollidersEnabled(bool enabled) => ToggleTreeHitboxes(enabled);
+
+        public void SetRegularCloudDensityPreset(string cloudDensityPreset) => UpdateCloudDensity(cloudDensityPreset, false);
+        public void SetTreeDensityPreset(string treeDensityPreset) => UpdatePropDensity(treeDensityPreset, "tree");
+        public void SetGrassDensityPreset(string grassDensityPreset) => UpdatePropDensity(grassDensityPreset, "grass");
+        public void SetFireflyDensityPreset(string fireflyDensityPreset) => UpdatePropDensity(fireflyDensityPreset, "firefly");
+
+        public void SetFireflyVisibilityAtNight(bool enabled) => firefliesEnabledAtNight = enabled;
+        public void SetFireflyVisibilityAtDay(bool enabled) => firefliesEnabledAtDay = enabled;
+
+        public bool GetTreeOptimisationEnabled() => forestSectorOptimisationEnabled;
+        public void SetTreeOptimisationEnabled(bool enabled) => forestSectorOptimisationEnabled = enabled;
+
+        public void SetLandingPadEnabled(bool enabled) => LandingPadUtils.ToggleLandingPadVisibility(enabled);
+
+        public void SetBirdSongVolume(float volume) => BirdSongUtils.SetBirdSongVolume(volume);
+
+        // ---- GENERAL VOLUMETRIC CLOUD API FUNCTIONS ----
+
+        public bool GetVolumetricCloudSettingsLocked() => volumetricCloudSettingsLocked;
+        public void SetVolumetricCloudSettingsLocked(bool locked) => volumetricCloudSettingsLocked = locked;
+
+        public bool GetVolumetricCloudsEnabled()
+        {
+            if (volumetricCloudObjects.Count == 0) return false;
+
+            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            if (volCloud == null) return false;
+
+            return volCloud.activeInHierarchy;
+        }
+
+        public void SetVolumetricCloudsEnabled(bool enabled)
+        {
+            foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
+            {
+                cloud?.SetActive(enabled);
+                shadowCloud?.SetActive(enabled);
+            }
+        }
 
         public float GetVolumetricCloudErosionStrength()
         {
@@ -1208,14 +1276,11 @@ namespace TimberHearthForest
 
         // VOLUMETRIC CLOUD DYNAMIC WEATHER API FUNCTIONS
 
-        public float GetVolumetricCloudScale()
-        {
-            return dynamicCloudSize;
-        }
+        public float GetVolumetricCloudScale() => dynamicCloudSize;
 
         public void SetVolumetricCloudScale(float scale)
         {
-            dynamicCloudSize = Mathf.Clamp(scale, 0.5f, 1.5f);
+            dynamicCloudSize = scale;
 
             foreach ((GameObject cloud, GameObject shadowCloud) in volumetricCloudObjects)
             {
@@ -1227,10 +1292,7 @@ namespace TimberHearthForest
             }
         }
 
-        public float GetVolumetricCloudCoverage()
-        {
-            return dynamicCloudCoverageThreshold;
-        }
+        public float GetVolumetricCloudCoverage() => dynamicCloudCoverageThreshold;
 
         public void SetVolumetricCloudCoverage(float coverage)
         {
@@ -1246,10 +1308,7 @@ namespace TimberHearthForest
             }
         }
 
-        public float GetVolumetricCloudTurbulence()
-        {
-            return dynamicCloudTurbulenceStrength;
-        }
+        public float GetVolumetricCloudTurbulence() => dynamicCloudTurbulenceStrength;
 
         public void SetVolumetricCloudTurbulence(float turbulence)
         {
@@ -1265,15 +1324,8 @@ namespace TimberHearthForest
             }
         }
 
-        public bool GetDynamicWeatherEnabled()
-        {
-            return dynamicWeatherEnabled;
-        }
-
-        public void SetDynamicWeatherEnabled(bool enabled)
-        {
-            dynamicWeatherEnabled = enabled;
-        }
+        public bool GetDynamicWeatherEnabled() => dynamicWeatherEnabled;
+        public void SetDynamicWeatherEnabled(bool enabled) => dynamicWeatherEnabled = enabled;
 
     }
 
