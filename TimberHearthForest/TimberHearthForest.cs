@@ -1132,7 +1132,7 @@ namespace TimberHearthForest
         {
             if (volumetricCloudObjects.Count == 0) return false;
 
-            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            GameObject volCloud = volumetricCloudObjects[0].Item1;
             if (volCloud == null) return false;
 
             return volCloud.activeInHierarchy;
@@ -1153,7 +1153,7 @@ namespace TimberHearthForest
         {
             if (volumetricCloudObjects.Count == 0) return 0.0f;
 
-            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            GameObject volCloud = volumetricCloudObjects[0].Item1;
             if (volCloud == null) return 0.0f;
 
             return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_ErosionStrength") ?? 0.0f;
@@ -1175,7 +1175,7 @@ namespace TimberHearthForest
         {
             if (volumetricCloudObjects.Count == 0) return 0.0f;
 
-            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            GameObject volCloud = volumetricCloudObjects[0].Item1;
             if (volCloud == null) return 0.0f;
 
             return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_OuterRadius") ?? 0.0f;
@@ -1200,7 +1200,7 @@ namespace TimberHearthForest
         {
             if (volumetricCloudObjects.Count == 0) return 0.0f;
 
-            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            GameObject volCloud = volumetricCloudObjects[0].Item1;
             if (volCloud == null) return 0.0f;
 
             return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_InnerRadius") ?? 0.0f;
@@ -1222,7 +1222,7 @@ namespace TimberHearthForest
         {
             if (volumetricCloudObjects.Count == 0) return 0.0f;
 
-            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            GameObject volCloud = volumetricCloudObjects[0].Item1;
             if (volCloud == null) return 0.0f;
 
             return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_LightAbsorptionThroughCloud") ?? 0.0f;
@@ -1241,7 +1241,7 @@ namespace TimberHearthForest
         {
             if (volumetricCloudObjects.Count == 0) return 0.0f;
 
-            GameObject volCloud = volumetricCloudObjects[0].Item2;
+            GameObject volCloud = volumetricCloudObjects[0].Item1;
             if (volCloud == null) return 0.0f;
 
             return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_LightAbsorptionTowardsSun") ?? 0.0f;
