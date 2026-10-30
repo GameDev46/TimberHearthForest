@@ -20,18 +20,27 @@ namespace TimberHearthForest.API
 
         // Settings Lock
         public bool GetSettingsLocked() => _mod.GetSettingsLocked();
-        public void SetSettingsLocked(bool value) => _mod.SetSettingsLocked(value);
+        public void SetSettingsLocked(bool locked) => _mod.SetSettingsLocked(locked);
 
         public bool GetTreeCollidersEnabled() => _mod.GetTreeCollidersEnabled();
         public void SetTreeCollidersEnabled(bool enabled) => _mod.SetTreeCollidersEnabled(enabled);
 
         public void SetRegularCloudDensityPreset(string cloudDensityPreset) => _mod.SetRegularCloudDensityPreset(cloudDensityPreset);
-        public void SetTreeDensityPreset(string density) => _mod.SetTreeDensityPreset(density);
-        public void SetGrassDensityPreset(string density) => _mod.SetGrassDensityPreset(density);
-        public void SetFireflyDensityPreset(string density) => _mod.SetFireflyDensityPreset(density);
+        public void SetTreeDensityPreset(string treeDensityPreset) => _mod.SetTreeDensityPreset(treeDensityPreset);
+        public void SetGrassDensityPreset(string grassDensityPreset) => _mod.SetGrassDensityPreset(grassDensityPreset);
+        public void SetFireflyDensityPreset(string fireflyDensityPreset) => _mod.SetFireflyDensityPreset(fireflyDensityPreset);
 
+        public void GetFireflyVisibilityAtNight() => _mod.GetFireflyVisibilityAtNight();
         public void SetFireflyVisibilityAtNight(bool enabled) => _mod.SetFireflyVisibilityAtNight(enabled);
+        public bool GetFireflyVisibilityAtDay() => _mod.GetFireflyVisibilityAtDay();
         public void SetFireflyVisibilityAtDay(bool enabled) => _mod.SetFireflyVisibilityAtDay(enabled);
+
+        public float GetTotalTreeCount() => _mod.GetTotalTreeCount();
+        public float GetActiveTreeCount() => _mod.GetActiveTreeCount();
+        public float GetTotalGrassCount() => _mod.GetTotalGrassCount();
+        public float GetActiveGrassCount() => _mod.GetActiveGrassCount();
+        public float GetTotalFireflyCount() => _mod.GetTotalFireflyCount();
+        public float GetActiveFireflyCount() => _mod.GetActiveFireflyCount();
 
         public bool GetTreeOptimisationEnabled() => _mod.GetTreeOptimisationEnabled();
         public void SetTreeOptimisationEnabled(bool enabled) => _mod.SetTreeOptimisationEnabled(enabled);
@@ -44,7 +53,7 @@ namespace TimberHearthForest.API
 
         // Volumetric Cloud Settings Lock
         public bool GetVolumetricCloudSettingsLocked() => _mod.GetVolumetricCloudSettingsLocked();
-        public void SetVolumetricCloudSettingsLocked(bool value) => _mod.SetVolumetricCloudSettingsLocked(value);
+        public void SetVolumetricCloudSettingsLocked(bool locked) => _mod.SetVolumetricCloudSettingsLocked(locked);
 
         // Volumetric Clouds Enabled
         public bool GetVolumetricCloudsEnabled() => _mod.GetVolumetricCloudsEnabled();

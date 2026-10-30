@@ -1104,8 +1104,17 @@ namespace TimberHearthForest
         public void SetGrassDensityPreset(string grassDensityPreset) => UpdatePropDensity(grassDensityPreset, "grass");
         public void SetFireflyDensityPreset(string fireflyDensityPreset) => UpdatePropDensity(fireflyDensityPreset, "firefly");
 
+        public bool GetFireflyVisibilityAtNight() => firefliesEnabledAtNight;
         public void SetFireflyVisibilityAtNight(bool enabled) => firefliesEnabledAtNight = enabled;
+        public bool GetFireflyVisibilityAtDay() => firefliesEnabledAtDay;
         public void SetFireflyVisibilityAtDay(bool enabled) => firefliesEnabledAtDay = enabled;
+
+        public float GetTotalTreeCount() => spawnedTrees.Count;
+        public float GetActiveTreeCount() => spawnedTrees.Count(tree => tree.activeInHierarchy);
+        public float GetTotalGrassCount() => spawnedGrass.Count;
+        public float GetActiveGrassCount() => spawnedGrass.Count(grass => grass.activeInHierarchy);
+        public float GetTotalFireflyCount() => spawnedFireflies.Count;
+        public float GetActiveFireflyCount() => spawnedFireflies.Count(firefly => firefly.transform.gameObject.activeInHierarchy);
 
         public bool GetTreeOptimisationEnabled() => forestSectorOptimisationEnabled;
         public void SetTreeOptimisationEnabled(bool enabled) => forestSectorOptimisationEnabled = enabled;
@@ -1136,6 +1145,8 @@ namespace TimberHearthForest
                 cloud?.SetActive(enabled);
                 shadowCloud?.SetActive(enabled);
             }
+
+            UpdateCloudDensity("Hidden", true);
         }
 
         public float GetVolumetricCloudErosionStrength()
@@ -1179,6 +1190,9 @@ namespace TimberHearthForest
 
                 Material cloudShadowMat = shadowCloud?.GetComponent<MeshRenderer>()?.material;
                 if (cloudShadowMat != null) cloudShadowMat.SetFloat("_OuterRadius", radius);
+
+                cloud?.transform.localScale = Vector3.one * radius * 1.5f;
+                shadowCloud?.transform.localScale = Vector3.one * radius * 1.5f;
             }
         }
 
@@ -1206,12 +1220,12 @@ namespace TimberHearthForest
 
         public float GetVolumetricCloudLightAbsorptionThroughCloud()
         {
-            if (volumetricCloudObjects.Count == 0) return 0.8f;
+            if (volumetricCloudObjects.Count == 0) return 0.0f;
 
             GameObject volCloud = volumetricCloudObjects[0].Item2;
-            if (volCloud == null) return 0.8f;
+            if (volCloud == null) return 0.0f;
 
-            return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_LightAbsorptionThroughCloud") ?? 0.8f;
+            return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_LightAbsorptionThroughCloud") ?? 0.0f;
         }
 
         public void SetVolumetricCloudLightAbsorptionThroughCloud(float absorption)
@@ -1225,12 +1239,12 @@ namespace TimberHearthForest
 
         public float GetVolumetricCloudLightAbsorptionTowardsSun()
         {
-            if (volumetricCloudObjects.Count == 0) return 0.4f;
+            if (volumetricCloudObjects.Count == 0) return 0.0f;
 
             GameObject volCloud = volumetricCloudObjects[0].Item2;
-            if (volCloud == null) return 0.4f;
+            if (volCloud == null) return 0.0f;
 
-            return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_LightAbsorptionTowardsSun") ?? 0.4f;
+            return volCloud.GetComponent<MeshRenderer>()?.material.GetFloat("_LightAbsorptionTowardsSun") ?? 0.0f;
         }
 
         public void SetVolumetricCloudLightAbsorptionTowardsSun(float absorption)
